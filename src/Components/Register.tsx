@@ -4,7 +4,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useFormik } from "formik";
 import { regSchema } from "../schemas/RegSchema";
 import setTypeState from "../hooks/SetTypeState";
-import axios from "axios";
+import { supabase } from "../../supabaseClient";
 
 interface RegisterValues {
   userName: string;
@@ -20,37 +20,25 @@ function Register() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loadingText, setLoadingText] = useState<string>("Kayıt Ol");
 
-  const submit = async (values: RegisterValues) => {
-    try {
-      setLoadingText("Kayıt Olunuyor...");
-      await axios.post(
-        "/api/register",
-        {
-          user_name: values.userName,
-          email: values.email,
-          password: values.password,
-        },
-        { withCredentials: true }
-      );
-      setErrorMessage("");
-      navigate("/");
-    } catch (err: any) {
-      if (err.response?.data?.error) {
-        if (err.response.data.error.includes("users_user_name_key")){
-        setErrorMessage("Bu kullanıcı adı zaten var");
-        }else if (err.response.data.error.includes("users_email_key")){
-          setErrorMessage("Bu email adresi zaten kayıtlı")
-        }else{
-          setErrorMessage(err.response.data.error);
-        }
+  
 
-      } else {
-        setErrorMessage("Bilinmeyen bir hata oluştu");
-      }
-    } finally {
-      setLoadingText("Kayıt Ol");
-    }
-  };
+  const submit = async (values: RegisterValues) => {
+  setLoadingText("Kayıt Olunuyor...");
+  setErrorMessage(""); // önce hata mesajını temizle
+
+  const res = await supabase.auth.signUp({
+    email: values.email,
+    password: values.password,
+  });
+
+  if (res.error) {
+    setErrorMessage(res.error.message);
+    setLoadingText("Kayıt Ol");
+  } else {
+    setLoadingText("Kayıt Başarılı!");
+    navigate("/"); // kayıt sonrası giriş sayfasına yönlendir
+  }
+};
 
   const formik = useFormik<RegisterValues>({
     initialValues: {

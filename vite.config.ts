@@ -2,7 +2,6 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
@@ -11,10 +10,11 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:8000", // productionda degistir lan bunu ihtiyacimiz olmaz
-        changeOrigin: true, // csrf sorunu cikmasin diye ekledim zaten
+        target: "http://localhost:8000",
+        changeOrigin: true,
         secure: false
       }
     }
   }
-})
+});
+//wmRDe2lh87VyA9OL

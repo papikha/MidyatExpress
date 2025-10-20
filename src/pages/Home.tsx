@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import type { RootState, AppDispatch } from "../redux/store";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllProducts } from "../redux/slices/ProductSlice";
+import { supabase } from "../../supabaseClient"; // Supabase ekledik
 
 function Home() {
   const { products } = useSelector((state: RootState) => state.products);
@@ -16,6 +17,16 @@ function Home() {
   useEffect(() => {
     dispatch(getAllProducts());
   }, []);
+
+  // 🔐 Giriş yapmış mı kontrol et
+  const handleUserClick = async () => {
+    const { data, error } = await supabase.auth.getUser();
+    if (data?.user) {
+      navigate("/Profilim");
+    } else {
+      navigate("/Kayıt");
+    }
+  };
 
   return (
     <div className="relative w-full min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-200 overflow-x-hidden">
@@ -45,8 +56,9 @@ function Home() {
           />
         </div>
 
+        {/* 👤 Kullanıcı simgesi */}
         <div
-          onClick={() => navigate("/Kayıt")}
+          onClick={handleUserClick}
           className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/50 flex items-center justify-center cursor-pointer hover:bg-indigo-200 border border-white/40 transition-all duration-300 shadow"
         >
           <FaRegUser className="text-indigo-800 text-xl" />

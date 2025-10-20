@@ -1,6 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
 import { Router } from "express";
-console.log("✅ home router yüklendi!");
 
 const router = Router();
 

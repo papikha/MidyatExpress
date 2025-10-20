@@ -5,6 +5,7 @@ import { useFormik } from "formik";
 import { regSchema } from "../schemas/RegSchema";
 import setTypeState from "../hooks/SetTypeState";
 import { supabase } from "../../supabaseClient";
+import axios from "axios";
 
 interface RegisterValues {
   userName: string;
@@ -22,10 +23,11 @@ function Register() {
 
   
 
-  const submit = async (values: RegisterValues) => {
+const submit = async (values: RegisterValues) => {
   setLoadingText("Kayıt Olunuyor...");
-  setErrorMessage(""); // önce hata mesajını temizle
+  setErrorMessage("");
 
+  // Supabase Auth ile kayıt
   const res = await supabase.auth.signUp({
     email: values.email,
     password: values.password,
@@ -34,11 +36,32 @@ function Register() {
   if (res.error) {
     setErrorMessage(res.error.message);
     setLoadingText("Kayıt Ol");
-  } else {
+    return;
+  }
+
+  const user = res.data.user;
+
+  if (!user) {
+    setErrorMessage("Kullanıcı bilgisi alınamadı.");
+    setLoadingText("Kayıt Ol");
+    return;
+  }
+
+  try {
+    const response = await axios.post("/api/register", {
+      id: user.id,
+      user_name: values.userName,
+      email: values.email,
+    });
+
     setLoadingText("Kayıt Başarılı!");
-    navigate("/"); // kayıt sonrası giriş sayfasına yönlendir
+    navigate("/Onay");
+  } catch (err: any) {
+    setErrorMessage(err.response?.data?.error || "Bir hata oluştu.");
+    setLoadingText("Kayıt Ol");
   }
 };
+
 
   const formik = useFormik<RegisterValues>({
     initialValues: {

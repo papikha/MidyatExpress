@@ -18,7 +18,7 @@ function Home() {
     dispatch(getAllProducts());
   }, []);
 
-  // 🔐 Giriş yapmış mı kontrol et
+  // Giriş yapmış mı
   const handleUserClick = async () => {
     const { data, error } = await supabase.auth.getUser();
     if (data?.user) {
@@ -30,7 +30,6 @@ function Home() {
 
   return (
     <div className="relative w-full min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-200 overflow-x-hidden">
-      {/* Arka plan efektleri */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.3),_transparent_70%)] pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,_rgba(255,255,255,0.2),_transparent_70%)] pointer-events-none" />
 
@@ -56,7 +55,6 @@ function Home() {
           />
         </div>
 
-        {/* 👤 Kullanıcı simgesi */}
         <div
           onClick={handleUserClick}
           className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/50 flex items-center justify-center cursor-pointer hover:bg-indigo-200 border border-white/40 transition-all duration-300 shadow"
@@ -65,9 +63,7 @@ function Home() {
         </div>
       </nav>
 
-      {/* İçerik */}
       <main className="flex flex-col items-center px-4 sm:px-8 py-12 text-center z-10 relative">
-        {/* Giriş */}
         <section className="mb-14 max-w-2xl">
           <h2 className="text-4xl sm:text-5xl font-extrabold text-indigo-800 drop-shadow-sm mb-4 animate-fade-in">
             MidyatExpress’e Hoş Geldin 🚀
@@ -77,7 +73,7 @@ function Home() {
           </p>
         </section>
 
-        {/* 🔥 Fırsatlar */}
+        {/* Fırsatlar */}
         <section className="w-full max-w-7xl mb-16">
           <h3 className="text-3xl font-bold text-red-600 mb-6 text-left px-1">
             Fırsatlar 🔥
@@ -116,7 +112,7 @@ function Home() {
           </div>
         </section>
 
-        {/* 🛒 Yöresel Ürünler */}
+        {/* Yöresel Ürünler */}
         <section className="w-full max-w-7xl">
           <h3 className="text-3xl font-bold text-indigo-800 mb-6 text-left px-1">
             Yöresel Ürünlerimiz

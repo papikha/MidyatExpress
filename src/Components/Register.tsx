@@ -21,43 +21,28 @@ function Register() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loadingText, setLoadingText] = useState<string>("Kayıt Ol");
 
-  
-
 const submit = async (values: RegisterValues) => {
   setLoadingText("Kayıt Olunuyor...");
   setErrorMessage("");
 
-  // Supabase Auth ile kayıt
-  const res = await supabase.auth.signUp({
-    email: values.email,
-    password: values.password,
-  });
-
-  if (res.error) {
-    setErrorMessage(res.error.message);
-    setLoadingText("Kayıt Ol");
-    return;
-  }
-
-  const user = res.data.user;
-
-  if (!user) {
-    setErrorMessage("Kullanıcı bilgisi alınamadı.");
-    setLoadingText("Kayıt Ol");
-    return;
-  }
-
   try {
     const response = await axios.post("/api/register", {
-      id: user.id,
       user_name: values.userName,
       email: values.email,
+      password: values.password,
     });
 
     setLoadingText("Kayıt Başarılı!");
     navigate("/Onay");
   } catch (err: any) {
-    setErrorMessage(err.response?.data?.error || "Bir hata oluştu.");
+    if (err.response?.data?.error.includes("users_email_key")){
+      setErrorMessage("Bu email adresi zaten kayıtlı");
+    }else if (err.response?.data?.error.includes("users_user_name_key")){
+      setErrorMessage("Bu isimde başka kullanıcı kayıtlı");
+    } else{
+      setErrorMessage(err.response?.data?.error || "Bir hata oluştu.");
+    }
+    
     setLoadingText("Kayıt Ol");
   }
 };

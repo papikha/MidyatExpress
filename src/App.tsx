@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import Login from "./Components/Login";
 import Register from "./Components/Register";
 import Confirm from "./pages/Confirm"
+import Profilim from "./pages/Profilim";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path="/Kayıt" element={<Register/>} />
         <Route path="/Giriş" element={<Login/>} />
         <Route path="/Onay" element={<Confirm/>} />
+        <Route path="/Profilim" element={<Profilim/>} />
       </Routes>
     </div>
   );

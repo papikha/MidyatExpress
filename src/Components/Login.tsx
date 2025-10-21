@@ -27,7 +27,14 @@ function Login() {
     });
 
     if (error) {
-      setErrorMessage(error.message);
+      if (error.message.includes("Email not confirmed")){
+        setErrorMessage("Email adresi doğrulanmamış");
+      }else if (error.message.includes("Invalid login credentials")){
+        setErrorMessage("Giriş yapmaya çalıştığınız bilgilerden biri ve ya ikisi yanlış");
+      }else{
+        setErrorMessage(error.message);
+      }
+      
       setLoadingText("Giriş Yap");
     } else {
       setLoadingText("Giriş Başarılı!");

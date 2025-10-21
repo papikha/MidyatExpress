@@ -9,27 +9,56 @@ const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY);
 
 router.post("/", async (req, res) => {
-  console.log(req.body)
   try {
-    const { user_name, email} = req.body;
+    const { email, password, user_name } = req.body;
 
-    if (user_name || email) {
-      return res.status(400).json({ error: "Tüm alanlar zorunludur." });
-    }
-
-    const { data, error } = await supabase
+    // 1. Önce kendi users tablosuna user_name ve email ekle (id otomatik veya seri olabilir)
+    const { data: insertedUsers, error: insertError } = await supabase
       .from("users")
-      .insert([{ user_name, email}]);
+      .insert([{ id : "a",user_name, email }])
+      .select(); // eklenen satırı döndür
 
-    if (error) {
-      console.error("Supabase error:", error);
-      return res.status(400).json({ error: error.message || error });
+    if (insertError) {
+      return res.status(400).json({ error: insertError.message });
     }
 
-    res.status(201).json({ message: "Kayıt başarılı", data });
-  } catch (err) {
-    console.error("Server catch hatası:", err);
-    res.status(500).json({ error: err.message || err });
+    if (!insertedUsers || insertedUsers.length === 0) {
+      return res.status(500).json({ error: "Kullanıcı kaydı başarısız" });
+    }
+
+    const insertedUser = insertedUsers[0];
+
+    // 2. Supabase Auth ile kullanıcı oluştur
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+    });
+
+    if (authError) {
+      return res.status(400).json({ error: authError.message });
+    }
+
+    // Supabase’den dönen user objesini al
+    const user = authData.user || authData;
+
+    if (!user || !user.id) {
+      return res.status(500).json({ error: "Supabase kullanıcı ID'si alınamadı" });
+    }
+
+    // 3. Supabase’den gelen kullanıcı ID’sini bizim users tablosundaki kayıtla eşleştirip güncelle
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({ id: user.id })
+      .eq("email", email);
+
+    if (updateError) {
+      return res.status(400).json({ error: updateError.message });
+    }
+
+    res.status(200).json({ message: "Kayıt başarılı", userId: user.id });
+  } catch (error) {
+    console.error("Sunucu hatası:", error);
+    res.status(500).json({ error: "Sunucu tarafında beklenmeyen hata oluştu." });
   }
 });
 

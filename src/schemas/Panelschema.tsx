@@ -6,7 +6,7 @@ export const panelSchema = Yup.object({
       .typeError("Geçerli bir fiyat giriniz.")
       .positive("Fiyat 0'dan büyük olmalıdır.")
       .required("Fiyat zorunludur."),
-    salePrice: Yup.number()
+    new_price: Yup.number()
       .typeError("Geçerli bir indirimli fiyat giriniz.")
       .positive("İndirimli fiyat 0'dan büyük olmalıdır.")
       .notRequired(),

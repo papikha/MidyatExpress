@@ -32,11 +32,12 @@ function Login() {
       }else if (error.message.includes("Invalid login credentials")){
         setErrorMessage("Giriş yapmaya çalıştığınız bilgilerden biri ve ya ikisi yanlış");
       }else{
-        setErrorMessage(error.message);
+        setErrorMessage(error.message); 
       }
       
       setLoadingText("Giriş Yap");
     } else {
+      localStorage.setItem("sb_token", data.session.access_token);
       setLoadingText("Giriş Başarılı!");
       navigate("/");
     }

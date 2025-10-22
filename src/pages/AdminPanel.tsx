@@ -1,95 +1,66 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useFormik } from "formik";
 import { panelSchema } from "../schemas/Panelschema";
-import { supabase } from "../../supabaseClient";
+import axios from "axios";
 
-export default function AdminPanel() {
+function AdminPanel() {
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
-  //Supabase yükleme
-  async function uploadImage(file: File) {
-    const fileName = `${Date.now()}_${file.name}`;
-    const { error } = await supabase.storage
-      .from("product_images")
-      .upload(fileName, file);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+    const allowed = ["image/png", "image/jpeg", "image/webp"];
+    if (!allowed.includes(selected.type))
+      return alert("Sadece PNG, JPEG, WEBP kabul edilir.");
+    if (selected.size > 5 * 1024 * 1024) return alert("5 mb üstü yüklenemez.");
 
-    if (error) throw error;
-
-    const { data } = supabase.storage
-      .from("product_images")
-      .getPublicUrl(fileName);
-
-    return data.publicUrl;
-  }
-
-  // Ürün DB kaydetme
-  async function saveProduct(values: any, imgUrl: string) {
-    const { error } = await supabase.from("products").insert([
-      {
-        name: values.name,
-        price: values.price,
-        salePrice: values.salePrice || null,
-        description: values.description,
-        stock: values.stock,
-        img_url: imgUrl,
-      },
-    ]);
-
-    if (error) throw error;
-  }
+    setFile(selected);
+    setPreview(URL.createObjectURL(selected));
+  };
 
   const formik = useFormik({
     initialValues: {
       name: "",
       price: "",
-      salePrice: "",
+      new_price: "",
       description: "",
       stock: "",
     },
     validationSchema: panelSchema,
     onSubmit: async (values, { resetForm }) => {
-      if (!file) {
-        alert("Lütfen ürün görseli yükleyin!");
-        return;
-      }
-
+      if (!file) return alert("Lütfen ürün görseli yükleyin!");
       try {
         setLoading(true);
-        const imgUrl = await uploadImage(file);
-        await saveProduct(values, imgUrl);
-        alert("Ürün başarıyla kaydedildi!");
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("name", values.name);
+        formData.append("price", values.price);
+        formData.append("new_price", values.new_price || "");
+        formData.append("stock", values.stock);
+        formData.append("description", values.description);
+
+        const res = await axios.post(
+          "/api/panel",
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data", },
+          }
+        );
+
+        alert(res.data.message);
         resetForm();
         setFile(null);
         setPreview(null);
       } catch (err: any) {
-        console.error(err);
-        alert("Hata: " + err.message);
+        alert("Hata: " + (err.response?.data?.error || err.message));
       } finally {
         setLoading(false);
       }
     },
   });
-
-  //Görsel seçimi
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files?.[0];
-    if (!selected) return;
-
-    const validTypes = ["image/png", "image/jpeg", "image/webp"];
-    if (!validTypes.includes(selected.type)) {
-      alert("Sadece PNG, JPEG veya WEBP dosyaları kabul edilir.");
-      return;
-    }
-    if (selected.size > 5 * 1024 * 1024) {
-      alert("Dosya boyutu 5MB'ı aşmamalıdır.");
-      return;
-    }
-
-    setFile(selected);
-    setPreview(URL.createObjectURL(selected));
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-100 p-6">
@@ -99,7 +70,6 @@ export default function AdminPanel() {
         </h1>
 
         <form onSubmit={formik.handleSubmit} className="space-y-6">
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -169,16 +139,16 @@ export default function AdminPanel() {
               </label>
               <input
                 type="number"
-                name="salePrice"
-                value={formik.values.salePrice}
+                name="new_price"
+                value={formik.values.new_price}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 className="mt-2 w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                 placeholder="80.00"
               />
-              {formik.touched.salePrice && formik.errors.salePrice && (
+              {formik.touched.new_price && formik.errors.new_price && (
                 <p className="text-red-600 text-sm mt-1">
-                  {formik.errors.salePrice}
+                  {formik.errors.new_price}
                 </p>
               )}
             </div>
@@ -204,7 +174,6 @@ export default function AdminPanel() {
             )}
           </div>
 
-          {/* Görsel Yükleme */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Ürün Görseli
@@ -242,3 +211,5 @@ export default function AdminPanel() {
     </div>
   );
 }
+
+export default AdminPanel;

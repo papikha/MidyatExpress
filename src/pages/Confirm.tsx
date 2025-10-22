@@ -14,7 +14,7 @@ function Confirm() {
           Email Onayı Bekleniyor
         </h1>
         <p className="text-gray-700 mb-4">
-          📩 Kayıt işlemin başarılı oldu! Şimdi email adresine bir doğrulama bağlantısı gönderdik.
+          Kayıt işlemin başarılı oldu! Şimdi email adresine bir doğrulama bağlantısı gönderdik.
         </p>
         <p className="text-sm text-gray-600 mb-6">
           Lütfen mail kutunu (ve spam klasörünü) kontrol et.  

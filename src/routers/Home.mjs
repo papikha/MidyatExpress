@@ -13,13 +13,11 @@ router.get("/", async (req, res) => {
     const { data, error } = await supabase.from("products").select("*");
 
     if (error) {
-      console.error("Supabase error:", error);
       return res.status(500).json({ error: error.message || error });
     }
 
-    res.json(data || []);
+    res.json(data);
   } catch (err) {
-    console.error("Server catch hatası:", err);
     res.status(500).json({ error: err.message || err });
   }
 });

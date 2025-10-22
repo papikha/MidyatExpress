@@ -4,7 +4,6 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useFormik } from "formik";
 import { regSchema } from "../schemas/RegSchema";
 import setTypeState from "../hooks/SetTypeState";
-import { supabase } from "../../supabaseClient";
 import axios from "axios";
 
 interface RegisterValues {
@@ -26,7 +25,7 @@ const submit = async (values: RegisterValues) => {
   setErrorMessage("");
 
   try {
-    const response = await axios.post("/api/register", {
+    await axios.post("/api/register", {
       user_name: values.userName,
       email: values.email,
       password: values.password,

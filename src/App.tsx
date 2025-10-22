@@ -5,6 +5,7 @@ import Login from "./Components/Login";
 import Register from "./Components/Register";
 import Confirm from "./pages/Confirm"
 import Profilim from "./pages/Profilim";
+import AdminPanel from "./pages/AdminPanel";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/Giriş" element={<Login/>} />
         <Route path="/Onay" element={<Confirm/>} />
         <Route path="/Profilim" element={<Profilim/>} />
+        <Route path="/Panel" element={<AdminPanel/>} />
       </Routes>
     </div>
   );

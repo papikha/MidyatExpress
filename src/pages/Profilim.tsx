@@ -2,7 +2,7 @@ import type {RootState, AppDispatch } from "../redux/store";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getUser } from "../redux/slices/UserSlice";
-import NotFound from "./NotFound"; // 404 sayfası
+import NotFound from "../Components/NotFound"; // 404 sayfası
 
 function Profilim() {
   const dispatch = useDispatch<AppDispatch>();
@@ -11,7 +11,7 @@ function Profilim() {
   useEffect(() => {
     dispatch(getUser());
   }, [dispatch]);
-   //kayıtsızsa 404
+   //kayıtsızsa 404 authorization tabiiiiiii
   if (!user?.id) {
     return <NotFound />;
   }

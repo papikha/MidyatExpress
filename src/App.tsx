@@ -6,7 +6,8 @@ import Register from "./Components/Register";
 import Confirm from "./pages/Confirm"
 import Profilim from "./pages/Profilim";
 import AdminPanel from "./pages/AdminPanel";
-import NotFound from "./pages/NotFound";
+import NotFound from "./Components/NotFound";
+import ProductDetails from "./pages/ProductDetails";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <Routes>
         <Route path="*" element={<NotFound/>} />
         <Route path="/" element={<Home/>} />
+        <Route path="/productDetails/:id" element={<ProductDetails/>} />
         <Route path="/Kayıt" element={<Register/>} />
         <Route path="/Giriş" element={<Login/>} />
         <Route path="/Onay" element={<Confirm/>} />

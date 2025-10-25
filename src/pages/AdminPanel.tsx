@@ -1,12 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import { panelSchema } from "../schemas/Panelschema";
 import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../redux/store";
+import { getUser } from "../redux/slices/UserSlice";
+import NotFound from "../Components/NotFound";
+import Loading from "../Components/Loading";
 
 function AdminPanel() {
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const { user, loading: isLoading } = useSelector(
+    (state: RootState) => state.user
+  );
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -42,13 +51,9 @@ function AdminPanel() {
         formData.append("stock", values.stock);
         formData.append("description", values.description);
 
-        const res = await axios.post(
-          "/api/panel",
-          formData,
-          {
-            headers: { "Content-Type": "multipart/form-data", },
-          }
-        );
+        const res = await axios.post("/api/panel", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
 
         alert(res.data.message);
         resetForm();
@@ -61,6 +66,14 @@ function AdminPanel() {
       }
     },
   });
+
+  useEffect(() => {
+    dispatch(getUser());
+  }, [dispatch]);
+
+  if (isLoading) return <Loading/>;
+  if (!user) return <NotFound />;
+  if (!user.is_admin) return <NotFound />;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-100 p-6">

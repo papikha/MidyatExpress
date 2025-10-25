@@ -8,6 +8,7 @@ export interface User {
   email: string;
   balance: string;
   avatar_url: string;
+  is_admin: boolean;
 }
 
 export interface UserState {
@@ -22,25 +23,22 @@ const initialState: UserState = {
   loading: false,
 };
 
-// 🔹 Giriş yapmış kullanıcıyı Supabase'den çek
 export const getUser = createAsyncThunk<User>(
   "user/getUser",
   async (_, { rejectWithValue }) => {
     try {
-      // Auth üzerinden kullanıcı ID'sini al
+
       const { data: authData, error: authError } = await supabase.auth.getUser();
       if (authError) throw authError;
 
       const userId = authData?.user?.id;
       if (!userId) throw new Error("Kullanıcı bulunamadı");
 
-      // users tablosundan bilgilerini al
       const { data, error } = await supabase
         .from("users")
         .select("*")
-        .eq("id", "fa4ba440-22e5-45f7-8237-3c1894cee3d0")
-        .single(); // sadece tek kullanıcı döner
-
+        .eq("id", userId)
+        .single();
       if (error) throw error;
       return data as User;
     } catch (err: any) {

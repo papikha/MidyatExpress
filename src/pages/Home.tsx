@@ -69,23 +69,21 @@ function Home() {
           }`}
         >
           {!loading && user && (
-  <div className="relative group">
-    <div
-      className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/50 flex items-center justify-center cursor-pointer hover:bg-yellow-100 border border-white/40 transition-all duration-300 shadow"
-    >
-      <IoWallet className="w-[70%] h-[70%]" />
-    </div>
+            <div className="relative group">
+              <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/50 flex items-center justify-center cursor-pointer hover:bg-yellow-100 border border-white/40 transition-all duration-300 shadow">
+                <IoWallet className="w-[70%] h-[70%]" />
+              </div>
 
-    {/* Tooltip / Balance */}
-    <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-300 pointer-events-none">
-      <div className="bg-yellow-200 text-yellow-900 text-sm font-semibold px-3 py-1 rounded-xl shadow-md whitespace-nowrap text-center">
-        ₺{user.balance}
-      </div>
-      {/* Alt ok */}
-      <div className="w-3 h-3 bg-yellow-200 rotate-45 absolute left-1/2 transform -translate-x-1/2 -top-1"></div>
-    </div>
-  </div>
-)}
+              {/* Tooltip / Balance */}
+              <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-300 pointer-events-none">
+                <div className="bg-yellow-200 text-yellow-900 text-sm font-semibold px-3 py-1 rounded-xl shadow-md whitespace-nowrap text-center">
+                  ₺{user.balance}
+                </div>
+                {/* Alt ok */}
+                <div className="w-3 h-3 bg-yellow-200 rotate-45 absolute left-1/2 transform -translate-x-1/2 -top-1"></div>
+              </div>
+            </div>
+          )}
 
           {user && (
             <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/50 flex items-center justify-center cursor-pointer hover:bg-indigo-200 border border-white/40 transition-all duration-300 shadow">
@@ -97,7 +95,15 @@ function Home() {
             onClick={handleProfileClick}
             className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/50 flex items-center justify-center cursor-pointer hover:bg-indigo-200 border border-white/40 transition-all duration-300 shadow"
           >
-            <FaRegUser className="text-indigo-800 text-lg sm:text-xl" />
+            {" "}
+            {user?.avatar_url ? (
+              <img
+                className="w-8 h-8 sm:w-11 sm:h-11 rounded-full"
+                src={user.avatar_url}
+              />
+            ) : (
+              <FaRegUser className="text-indigo-800 text-lg sm:text-xl" />
+            )}
           </div>
         </div>
       </nav>
@@ -143,8 +149,11 @@ function Home() {
                         {product.new_price}
                       </span>
                     </div>
-                    <button className="mt-3 bg-red-500 text-white px-4 py-2 rounded-xl hover:bg-red-600 transition shadow-md">
-                      Göz At
+                    <button
+                      onClick={() => navigate(`/productDetails/${product.id}`)}
+                      className="mt-3 bg-red-500 text-white px-4 py-2 rounded-xl hover:bg-red-600 transition shadow-md"
+                    >
+                      İncele
                     </button>
                   </div>
                 ))}
@@ -177,8 +186,11 @@ function Home() {
                     <p className="text-indigo-600 font-medium mt-1 mb-2">
                       {product.price}
                     </p>
-                    <button className="mt-auto bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition shadow">
-                      Göz At
+                    <button
+                      onClick={() => navigate(`/productDetails/${product.id}`)}
+                      className="mt-auto bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition shadow"
+                    >
+                      İncele
                     </button>
                   </div>
                 ))}

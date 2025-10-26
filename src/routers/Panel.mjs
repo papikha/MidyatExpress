@@ -13,7 +13,24 @@ router.post("/", upload.single("file"), async (req, res) => {
   try {
     const { name, price, stock, description, new_price } = req.body;
 
+    const { data: inserted, error: insertError } = await supabase
+      .from("products") //resimsiz ürün çünkü sonra üründe sorun çıkarsa resim buckete gidiyor
+      .insert([
+        {
+          name,
+          price,
+          new_price: new_price || null,
+          stock,
+          description,
+        },
+      ])
+      .select("id")
+      .single();
+
+    if (insertError) throw insertError;
+
     let imgUrl = null;
+
     if (req.file) {
       const key = `${Date.now()}_${req.file.originalname}`;
       const { error: uploadError } = await supabase.storage
@@ -25,22 +42,14 @@ router.post("/", upload.single("file"), async (req, res) => {
         .from("product_images")
         .getPublicUrl(key);
       imgUrl = data.publicUrl;
+
+      const { error: updateError } = await supabase
+        .from("products")
+        .update({ img_url: imgUrl })
+        .eq("id", inserted.id);
+
+      if (updateError) throw updateError;
     }
-
-    const { error: insertError } = await supabase
-      .from("products")
-      .insert([
-        {
-          name,
-          price,
-          new_price: new_price || null,
-          stock,
-          description,
-          img_url: imgUrl,
-        },
-      ]);
-
-    if (insertError) throw insertError;
 
     res.json({ message: "Ürün başarıyla kaydedildi!" });
   } catch (err) {

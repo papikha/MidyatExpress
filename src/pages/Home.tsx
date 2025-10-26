@@ -8,10 +8,12 @@ import { getAllProducts } from "../redux/slices/ProductSlice";
 import logo from "../images/Logo.png";
 import hazirlaniyor from "../images/hazırlanıyor.jpg";
 import { getUser } from "../redux/slices/UserSlice";
+import MessageBox from "../Components/MessageBox";
 
 function Home() {
   const { products } = useSelector((state: RootState) => state.products);
   const { user, loading } = useSelector((state: RootState) => state.user);
+  const { message } = useSelector((state: RootState) => state.message);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const [searchActive, setSearchActive] = useState(false);
@@ -196,6 +198,9 @@ function Home() {
           </div>
         </section>
       </main>
+      {message && (
+        <MessageBox/>
+      )}
     </div>
   );
 }

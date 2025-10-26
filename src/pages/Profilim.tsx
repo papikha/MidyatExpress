@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import type { ChangeEvent } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "../redux/store";
-import { getUser } from "../redux/slices/UserSlice";
+import { clearUser, getUser } from "../redux/slices/UserSlice";
 import axios from "axios";
 import { supabase } from "../../supabaseClient";
 import { FaUserCircle, FaEdit, FaShoppingCart } from "react-icons/fa";
@@ -13,6 +13,9 @@ import { useNavigate } from "react-router-dom";
 import NotFound from "../Components/NotFound";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import MessageBox from "../Components/MessageBox";
+import { setMessage } from "../redux/slices/MessageSlice";
+import ConfirmBox from "../Components/ConfirmBox";
 
 const passwordSchema = Yup.object({
   password: Yup.string()
@@ -27,15 +30,15 @@ interface PassValues {
 function Profilim() {
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.user);
+  const [confirmMessage, setConfirmMessage] = useState<string | null>(null)
+  const [onConfirm, setOnConfirm] = useState<(() => void) | null>(null);
+  const { message } = useSelector((state: RootState) => state.message);
   const navigate = useNavigate();
   const walletRef = useRef<HTMLDivElement>(null);
-
   const [balanceOpen, setBalanceOpen] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const [messageColor, setMessageColor] = useState<string | null>(null);
 
   useEffect(() => {
     dispatch(getUser());
@@ -54,32 +57,36 @@ function Profilim() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Çıkış Yapma
+  //* Çıkış Yapma
   const handleLogout = () => {
-    if (window.confirm("Çıkış yapmak istediğinizden emin misiniz?")) {
-      supabase.auth.signOut();
+    setConfirmMessage("Çıkış yapmak istediğinizden emin misiniz?");
+    setOnConfirm(() => async() => {
+      await supabase.auth.signOut();
+      dispatch(setMessage({message :"Hesaptan Çıkış Yaptınız",messageColor: "#f2d73f"}));
+      dispatch(clearUser());
+      setConfirmMessage(null);
+      setOnConfirm(null);
       navigate("/");
-      window.location.reload();
-    }
+    })
+      
   };
 
-  // Hesap silme
+  //* Hesap silme
   const handleDeleteAccount = async () => {
-    if (
-      !window.confirm(
-        "Hesabınızı kalıcı olarak silmek istediğinizden emin misiniz?"
-      )
-    )
-      return;
-    try {
+    setConfirmMessage("Bu Hesabı Kalıcı Olarak Silmek İstediğinizden Emin misiniz?")
+    setOnConfirm(() => async() => {
+      try {
       await axios.delete(`/api/users/${user?.id}`);
+      dispatch(setMessage({message :"Hesap Kalıcı Olarak Silindi",messageColor: "#f23f3f"}));
+      dispatch(clearUser());
+      setConfirmMessage(null);
+      setOnConfirm(null);
       navigate("/");
-      window.location.reload();
     } catch (err) {
       console.error(err);
-      setMessage("Hesap silinemedi!");
-      setMessageColor("#f23f3f");
+      dispatch(setMessage({message :"Hesap silinemedi!",messageColor: "#f23f3f"}));
     }
+    });
   };
 
   // Avatar yükleme
@@ -97,29 +104,27 @@ function Profilim() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       dispatch(getUser());
-      setMessage("Avatar yüklendi!");
-      setMessageColor("#2bd92b");
+      dispatch(setMessage({message :"Avatar yüklendi!",messageColor: "#2bd92b"}));
       setPreview(null);
     } catch (err) {
       console.error(err);
-      setMessage("Avatar yüklenemedi!");
-      setMessageColor("#f23f3f");
+      dispatch(setMessage({message :"Avatar yüklenemedi!",messageColor: "#f23f3f"}));
     }
   };
 
   // Avatar silme
   const handleAvatarDelete = async () => {
-    if (!window.confirm("Avatarı silmek istediğine emin misin?")) return;
-    try {
+    setConfirmMessage("Avatarı silmek istediğine emin misin?")
+    setOnConfirm(() => async() => {
+      try {
       await axios.post("/api/profile/delete", { userId: user?.id });
       dispatch(getUser());
-      setMessage("Avatar silindi!");
-      setMessageColor("#f2d73f");
+      dispatch(setMessage({message :"Avatar silindi!",messageColor: "#f2d73f"}));
     } catch (err) {
       console.error(err);
-      setMessage("Avatar silinemedi!");
-      setMessageColor("#f23f3f");
+      dispatch(setMessage({message :"Avatar silinemedi!",messageColor: "#f23f3f"}));
     }
+    });
   };
 
   const formik = useFormik<PassValues>({
@@ -134,17 +139,14 @@ function Profilim() {
           password: values.password,
         });
         if (error) throw error;
-        setMessage("Şifre başarıyla değiştirildi!");
-        setMessageColor("#2bd92b");
+        dispatch(setMessage({message :"Şifre başarıyla değiştirildi!",messageColor: "#2bd92b"}));
         formik.resetForm();
         setShowPasswordModal(false);
       } catch (err: any) {
         if (err.message.includes("New password should be different from the old password.")){
-          setMessage("Hata: Lütfen Şu ankinden Farklı Bir Şifre Giriniz");
-          setMessageColor("#f23f3f");
+          dispatch(setMessage({message :"Hata: Lütfen Şu ankinden Farklı Bir Şifre Giriniz",messageColor: "#f23f3f"}));
         }else{
-        setMessage("Bilinmeyen bir Hata Oluştu Lütfen Daha Sonra Tekrar Deneyiniz");
-        setMessageColor("#f23f3f");
+          dispatch(setMessage({message :"Bilinmeyen bir Hata Oluştu Lütfen Daha Sonra Tekrar Deneyiniz",messageColor: "#f23f3f"}));
         }
       } finally {
         setLoading(false);
@@ -303,25 +305,10 @@ function Profilim() {
         </form>
       )}
       {message && (
-        <div className="fixed bg-gray-200 hover:bg-gray-400 bottom-4 left-1/2 transform -translate-x-1/2 flex items-center max-w-lg w-full rounded-xl shadow-lg overflow-hidden transition-colors">
-          {/* Mesaj kısmı */}
-          <div
-            style={{
-              background: `${messageColor}`,
-            }}
-            className="flex-1 px-6 py-4 font-semibold text-lg"
-          >
-            {message}
-          </div>
-
-          {/* Tamam butonu */}
-          <button
-            onClick={() => setMessage(null)}
-            className="px-5 py-3 text-gray-700 font-semibold transition-colors"
-          >
-            Tamam
-          </button>
-        </div>
+        <MessageBox/>
+      )}
+      {confirmMessage && onConfirm && (
+        <ConfirmBox confirmMessage = {confirmMessage} onConfirm= {onConfirm!} onCancel={() => {setConfirmMessage(null), setOnConfirm(null)}} />
       )}
     </div>
   );

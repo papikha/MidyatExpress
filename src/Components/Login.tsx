@@ -5,6 +5,10 @@ import { useFormik } from "formik";
 import { loginSchema } from "../schemas/LoginSchema";
 import setTypeState from "../hooks/SetTypeState";
 import { supabase } from "../../supabaseClient";
+import MessageBox from "./MessageBox";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState, AppDispatch } from "../redux/store";
+import { setMessage } from "../redux/slices/MessageSlice";
 
 interface LoginValues {
   email: string;
@@ -13,6 +17,8 @@ interface LoginValues {
 
 function Login() {
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const { message } = useSelector((state: RootState) => state.message);
   const [type, eye, setTypeFunc] = setTypeState();
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loadingText, setLoadingText] = useState<string>("Giriş Yap");
@@ -39,6 +45,7 @@ function Login() {
     } else {
       localStorage.setItem("sb_token", data.session.access_token);
       setLoadingText("Giriş Başarılı!");
+      dispatch(setMessage({message: "Başarıyla Giriş Yaptınız", messageColor: "#2bd92b"}))
       navigate("/");
     }
   };
@@ -133,6 +140,9 @@ function Login() {
           </span>
         </p>
       </form>
+      {message && (
+        <MessageBox/>
+      )}
     </div>
   );
 }

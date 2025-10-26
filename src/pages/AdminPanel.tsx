@@ -7,6 +7,8 @@ import type { AppDispatch, RootState } from "../redux/store";
 import { getUser } from "../redux/slices/UserSlice";
 import NotFound from "../Components/NotFound";
 import Loading from "../Components/Loading";
+import { setMessage } from "../redux/slices/MessageSlice";
+import MessageBox from "../Components/MessageBox";
 
 function AdminPanel() {
   const [preview, setPreview] = useState<string | null>(null);
@@ -15,6 +17,7 @@ function AdminPanel() {
   const { user, loading: isLoading } = useSelector(
     (state: RootState) => state.user
   );
+  const { message } = useSelector((state: RootState) => state.message);
   const dispatch = useDispatch<AppDispatch>();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -22,8 +25,19 @@ function AdminPanel() {
     if (!selected) return;
     const allowed = ["image/png", "image/jpeg", "image/webp"];
     if (!allowed.includes(selected.type))
-      return alert("Sadece PNG, JPEG, WEBP kabul edilir.");
-    if (selected.size > 5 * 1024 * 1024) return alert("5 mb üstü yüklenemez.");
+      return dispatch(
+        setMessage({
+          message: "Sadece PNG, JPEG, WEBP kabul edilir.",
+          messageColor: "#f23f3f",
+        })
+      );
+    if (selected.size > 5 * 1024 * 1024)
+      return dispatch(
+        setMessage({
+          message: "5 mb üstü yüklenemez.",
+          messageColor: "#f23f3f",
+        })
+      );
 
     setFile(selected);
     setPreview(URL.createObjectURL(selected));
@@ -39,7 +53,7 @@ function AdminPanel() {
     },
     validationSchema: panelSchema,
     onSubmit: async (values, { resetForm }) => {
-      if (!file) return alert("Lütfen ürün görseli yükleyin!");
+      if (!file) return dispatch(setMessage({message: "Lütfen ürün görseli yükleyin.", messageColor: "#f23f3f"}));
       try {
         setLoading(true);
 
@@ -55,12 +69,13 @@ function AdminPanel() {
           headers: { "Content-Type": "multipart/form-data" },
         });
 
-        alert(res.data.message);
+        dispatch(setMessage({message: res.data.message, messageColor: "#f2d73f"}));
         resetForm();
         setFile(null);
         setPreview(null);
       } catch (err: any) {
-        alert("Hata: " + (err.response?.data?.error || err.message));
+        if (err.message.includes("Products_name_key") || err.response.data.error.includes("Products_name_key"))  dispatch(setMessage({message: `Hata: Zaten Bu isimde Başka Bir Ürün Var`, messageColor: "#f23f3f"}));
+        else dispatch(setMessage({message: `Hata:  ${(err.response?.data?.error || err.message)}`, messageColor: "#f23f3f"}));
       } finally {
         setLoading(false);
       }
@@ -71,7 +86,7 @@ function AdminPanel() {
     dispatch(getUser());
   }, [dispatch]);
 
-  if (isLoading) return <Loading/>;
+  if (isLoading) return <Loading />;
   if (!user) return <NotFound />;
   if (!user.is_admin) return <NotFound />;
 
@@ -220,6 +235,9 @@ function AdminPanel() {
             {loading ? "Yükleniyor..." : "Ürünü Kaydet"}
           </button>
         </form>
+        {message && (
+        <MessageBox/>
+      )}
       </div>
     </div>
   );

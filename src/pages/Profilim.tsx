@@ -59,10 +59,10 @@ function Profilim() {
 
   //* Çıkış Yapma
   const handleLogout = () => {
-    setConfirmMessage("Çıkış yapmak istediğinizden emin misiniz?");
+    setConfirmMessage("Hesabınızıdan Çıkış yapmak istediğinizden emin misiniz?");
     setOnConfirm(() => async() => {
       await supabase.auth.signOut();
-      dispatch(setMessage({message :"Hesaptan Çıkış Yaptınız",messageColor: "#f2d73f"}));
+      dispatch(setMessage({message :"Hesabınızdan Çıkış Yaptınız",messageColor: "#f2d73f"}));
       dispatch(clearUser());
       setConfirmMessage(null);
       setOnConfirm(null);
@@ -84,7 +84,7 @@ function Profilim() {
       navigate("/");
     } catch (err) {
       console.error(err);
-      dispatch(setMessage({message :"Hesap silinemedi!",messageColor: "#f23f3f"}));
+      dispatch(setMessage({message :"Hesap silinemedi",messageColor: "#f23f3f"}));
     }
     });
   };
@@ -104,11 +104,11 @@ function Profilim() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       dispatch(getUser());
-      dispatch(setMessage({message :"Avatar yüklendi!",messageColor: "#2bd92b"}));
+      dispatch(setMessage({message :"Avatar Başarıyla Yüklendi!",messageColor: "#2bd92b"}));
       setPreview(null);
     } catch (err) {
       console.error(err);
-      dispatch(setMessage({message :"Avatar yüklenemedi!",messageColor: "#f23f3f"}));
+      dispatch(setMessage({message :"Avatar Yüklerken Bir Sorun Oluştu",messageColor: "#f23f3f"}));
     }
   };
 
@@ -119,10 +119,12 @@ function Profilim() {
       try {
       await axios.post("/api/profile/delete", { userId: user?.id });
       dispatch(getUser());
-      dispatch(setMessage({message :"Avatar silindi!",messageColor: "#f2d73f"}));
+      dispatch(setMessage({message :"Avatar Başarıyla Silindi!",messageColor: "#2bd92b"}));
+      setConfirmMessage(null);
+      setOnConfirm(null);
     } catch (err) {
       console.error(err);
-      dispatch(setMessage({message :"Avatar silinemedi!",messageColor: "#f23f3f"}));
+      dispatch(setMessage({message :"Avatar Silerken Bir Sorun Oluştu",messageColor: "#f23f3f"}));
     }
     });
   };

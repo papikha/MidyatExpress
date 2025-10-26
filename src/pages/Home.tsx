@@ -74,12 +74,10 @@ function Home() {
                 <IoWallet className="w-[70%] h-[70%]" />
               </div>
 
-              {/* Tooltip / Balance */}
               <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-300 pointer-events-none">
                 <div className="bg-yellow-200 text-yellow-900 text-sm font-semibold px-3 py-1 rounded-xl shadow-md whitespace-nowrap text-center">
                   ₺{user.balance}
                 </div>
-                {/* Alt ok */}
                 <div className="w-3 h-3 bg-yellow-200 rotate-45 absolute left-1/2 transform -translate-x-1/2 -top-1"></div>
               </div>
             </div>

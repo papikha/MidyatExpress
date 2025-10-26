@@ -25,7 +25,7 @@ const submit = async (values: RegisterValues) => {
   setErrorMessage("");
 
   try {
-    await axios.post("/api/register", {
+    await axios.post("/api/users", {
       user_name: values.userName,
       email: values.email,
       password: values.password,

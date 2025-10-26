@@ -38,7 +38,7 @@ function NewProductDetails() {
         />
       </div>
 
-      <div className="flex flex-col md:ml-10 gap-4 max-w-xl text-center md:text-left">
+      <div className="flex flex-col md:ml-10 gap-4 max-w-xl text-center md:text-left md:mb-60 mb-20">
         <h1 className={`text-2xl md:text-4xl font-extrabold ${product.new_price ? "text-red-700" : "text-green-700"}`}>
           {product.name}
         </h1>

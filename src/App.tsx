@@ -8,6 +8,7 @@ import Profilim from "./pages/Profilim";
 import AdminPanel from "./pages/AdminPanel";
 import NotFound from "./Components/NotFound";
 import ProductDetails from "./pages/ProductDetails";
+import Chat from "./pages/Chat";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/Onay" element={<Confirm/>} />
         <Route path="/Profilim" element={<Profilim/>} />
         <Route path="/Panel" element={<AdminPanel/>} />
+        <Route path="/Sohbetlerim" element={<Chat/>} />
       </Routes>
     </div>
   );

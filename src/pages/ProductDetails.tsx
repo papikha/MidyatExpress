@@ -24,7 +24,7 @@ function NewProductDetails() {
     );
 
   return (
-    <div className="min-h-screen w-screen bg-gray-50 flex flex-col md:flex-row items-center md:items-start p-6 md:p-20 pb-40">
+    <div className="min-h-screen w-screen bg-gray-50 flex flex-col md:flex-row items-center md:items-start p-6 md:p-15 md:pt-6 pb-40">
       <div className="flex-shrink-0 w-32 h-32 md:w-64 md:h-64 lg:w-80 lg:h-80 flex justify-center items-center bg-gray-100 rounded-2xl shadow-lg relative mb-6 md:mb-0">
         {product.new_price && (
           <div className="absolute top-2 left-2 bg-red-500 text-white font-bold px-3 py-1 rounded-full text-sm md:text-base animate-pulse z-10">
@@ -67,7 +67,7 @@ function NewProductDetails() {
           Stok durumu: {product.stock || "Stokta yok"}
         </p>
 
-        <button className="mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-2 md:py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105">
+        <button className="mt-4 mb-10 bg-green-600 hover:bg-green-700 text-white font-bold py-2 md:py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105">
           Sepete Ekle
         </button>
       </div>

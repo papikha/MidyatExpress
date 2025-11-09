@@ -23,7 +23,7 @@ function MessageBox() {
 
   return (
     <div
-      className={`fixed bottom-6 left-1/2 transform -translate-x-1/2 max-w-md w-full rounded-xl shadow-lg overflow-hidden transition-all duration-300
+      className={`fixed bottom-6 left-1/2 transform -translate-x-1/2 max-w-md w-full rounded-xl shadow-lg overflow-hidden transition-all duration-300 z-50
         ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
     >
       <div

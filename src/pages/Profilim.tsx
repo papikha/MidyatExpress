@@ -221,7 +221,7 @@ function Profilim() {
 
           <div className="flex-1 flex flex-col justify-between h-full text-left">
             <h1 className="text-3xl sm:text-4xl font-bold mb-4">
-              Merhaba, {user.user_name} 👋
+              Merhaba, {user.user_name}
             </h1>
             <p className="text-lg mb-2">
               <strong>Ad:</strong> {user.user_name}
@@ -235,16 +235,16 @@ function Profilim() {
         {/* Butonlar */}
         <div className="flex flex-wrap gap-4 mt-6">
           <button
+            onClick={() => navigate("/sepetim")}
+            className="flex-1 min-w-[140px] bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 shadow-md flex items-center justify-center gap-2"
+          >
+            <FaShoppingCart /> <span>Sepete Git</span>
+          </button>
+          <button
             onClick={() => setShowPasswordModal(true)}
             className="flex-1 min-w-[140px] bg-blue-500 text-white py-3 rounded-xl hover:bg-blue-600 shadow-md"
           >
             Şifreyi Değiştir
-          </button>
-          <button
-            onClick={handleDeleteAccount}
-            className="flex-1 min-w-[140px] bg-red-500 text-white py-3 rounded-xl hover:bg-red-600 shadow-md"
-          >
-            Hesabı Sil
           </button>
           <button
             onClick={handleLogout}
@@ -253,10 +253,10 @@ function Profilim() {
             Çıkış Yap
           </button>
           <button
-            onClick={() => navigate("/sepetim")}
-            className="flex-1 min-w-[140px] bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 shadow-md flex items-center justify-center gap-2"
+            onClick={handleDeleteAccount}
+            className="flex-1 min-w-[140px] bg-red-500 text-white py-3 rounded-xl hover:bg-red-600 shadow-md"
           >
-            <FaShoppingCart /> <span>Sepete Git</span>
+            Hesabı Sil
           </button>
           {user.is_admin && (
             <button

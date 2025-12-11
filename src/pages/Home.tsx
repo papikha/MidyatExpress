@@ -112,7 +112,7 @@ function Home() {
       <main className="flex flex-col items-center px-4 sm:px-8 py-12 text-center z-10 relative">
         <section className="mb-14 max-w-2xl">
           <h2 className="text-4xl sm:text-5xl font-extrabold text-indigo-800 drop-shadow-sm mb-4 animate-fade-in">
-            MidyatExpress’e Hoş Geldin 🚀
+            MidyatExpress’e Hoş Geldin
           </h2>
           <p className="text-md sm:text-lg text-indigo-700/80 leading-relaxed">
             Her kategoride aradığın hizmet burada. Keşfetmeye başla!

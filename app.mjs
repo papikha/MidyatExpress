@@ -4,10 +4,18 @@ import HomeRouter from "./src/routers/Home.mjs"
 import UsersRouter from "./src/routers/users.mjs"
 import PanelRouter from "./src/routers/Panel.mjs"
 import ProfileRouter from "./src/routers/Profile.mjs"
-import ChatRouter, { newChat } from "./src/routers/Chat.mjs"
-import http from "http";
+import ChatRouter from "./src/routers/Chat.mjs"
+import { Server } from "socket.io";
+import { createServer } from "http";
 
 const app = express();
+const server = createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+  }
+});
 app.use(express.json())
 
 app.use("/api/products", HomeRouter);
@@ -18,6 +26,10 @@ app.use("/api/chat", ChatRouter);
 
 const port = process.env.PORT || 8000;
 
-const server = http.createServer(app);
-newChat(server)
+io.on("connection", (socket) => {
+  socket.broadcast
+});
+
+
+
 server.listen(port, () => console.log(`Hoppa - ${port} V2`));

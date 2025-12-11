@@ -77,7 +77,7 @@ const submit = async (values: RegisterValues) => {
             name="userName"
             value={values.userName}
             onChange={handleChange}
-            placeholder="Kullanıcı adınızı giriniz"
+            placeholder="Lütfen gerçek adınızı girmeyiniz"
             className={`w-full border rounded-md px-4 py-2 mt-1 focus:outline-none focus:ring-2 ${
               errors.userName && touched.userName
                 ? "border-red-400 focus:ring-red-300"

@@ -7,19 +7,28 @@ import { getUser } from "../redux/slices/UserSlice";
 import { io, Socket } from "socket.io-client";
 import logo from "../images/Logo.png";
 import { useNavigate } from "react-router-dom";
+import { formatDistanceToNow } from "date-fns";
+import { tr } from "date-fns/locale";
 
 interface User {
   id: string;
   user_name: string;
   avatar_url?: string;
+  is_online: boolean;
+  last_seen: string;
 }
 
 function Chat() {
   const [showChat, setShowChat] = useState(false);
   const [activeUser, setActiveUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
+  const [usersWithRoom, setUsersWithRoom] = useState<User[]>([]);
   const { user } = useSelector((state: RootState) => state.user);
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [message, setMessage] = useState<string>("");
+  const [messages, setMessages] = useState<any[]>([]);
+  const [room, setRoom] = useState<string>("");
+
   const lastKeyPressTime = useRef(0);
 
   const dispatch = useDispatch<AppDispatch>();
@@ -28,21 +37,6 @@ function Chat() {
   useEffect(() => {
     dispatch(getUser());
   }, [dispatch]);
-
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const getUsers = async () => {
-      try {
-        const response = await axios.post("/api/chat/users", { id: user.id });
-        setUsers(response.data);
-      } catch (err) {
-        console.error("Kullanıcı listesi alınamadı:", err);
-      }
-    };
-
-    getUsers();
-  }, [user]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -57,6 +51,18 @@ function Chat() {
 
     setSocket(newSocket);
 
+    const getUsers = async () => {
+      try {
+        const response = await axios.post("/api/chat/users", { id: user.id });
+        setUsers(response.data);
+        setUsersWithRoom(response.data);
+      } catch (err) {
+        console.error("Kullanıcı listesi alınamadı:", err);
+      }
+    };
+
+    getUsers();
+
     return () => {
       newSocket.disconnect();
     };
@@ -64,7 +70,7 @@ function Chat() {
 
   const searching = (e: any) => {
     const value = e.target.value;
-    if (value.length < 3) return;
+    if (value.length < 3) return setUsers(usersWithRoom);
     lastKeyPressTime.current = Date.now();
 
     setTimeout(async () => {
@@ -81,14 +87,47 @@ function Chat() {
     }, 500);
   };
 
+  useEffect(() => {
+    socket?.on("receive_message", (data) => {
+      setMessages((prev: any) => [...prev, data]);
+    });
+  }, [socket]);
+
+  const sendMessage = async (e: any) => {
+    e.preventDefault();
+    if (!activeUser) return;
+    if (message.length < 2) return;
+    setMessage("");
+
+    const exists = usersWithRoom.some((u) => u.id === activeUser.id);
+    if (!exists) {
+      try {
+        await axios.post("/api/chat/addRoom", {
+          user1_id: user?.id,
+          user2_id: activeUser?.id,
+        });
+      } catch (error) {
+        console.error(error);
+        return;
+      }
+    }
+    socket?.emit("send_message", { room, message, sender_id: user?.id });
+    await axios.post("/api/chat/sendMessage", {
+      room,
+      message,
+      sender_id: user?.id,
+    });
+  };
+
+  const getChats = async (room: string) => {
+    setMessage("");
+    const response: any = await axios.post("/api/chat/getMessages", { room });
+    setMessages(response.data || []);
+  };
+
   return (
     <div className="flex h-screen bg-gray-100">
-      <div
-        className={`${
-          showChat ? "hidden" : "flex"
-        } sm:flex w-full sm:w-1/4 bg-white border-r border-gray-200 flex-col transition-all duration-300 shadow-sm`}
-      >
-        {/* Arama çubuğu */}
+      <div className="hidden sm:flex flex-col w-1/4 bg-white border-r border-gray-200 shadow-sm">
         <div className="p-4 border-b border-gray-200">
           <input
             onChange={searching}
@@ -98,19 +137,22 @@ function Chat() {
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+        <div className="flex-1 overflow-y-auto h-[calc(100vh-64px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {users
-            .filter((u) => u.user_name !== user?.user_name)
+            .filter((u) => u.id !== user?.id)
             .map((u) => (
               <div
-                key={u.id || u.user_name}
+                key={u.id}
                 onClick={() => {
                   setActiveUser(u);
+                  const roomName = [user?.id, u.id].sort().join("-");
+                  setRoom(roomName);
+                  socket?.emit("join_room", roomName);
+                  getChats(roomName);
                   setShowChat(true);
                 }}
                 className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100"
               >
-                {/*Avatar resmi*/}
                 {u.avatar_url ? (
                   <img
                     className="w-12 h-12 rounded-full object-cover"
@@ -127,7 +169,7 @@ function Chat() {
                     {u.user_name}
                   </p>
                   <p className="text-sm text-gray-500 truncate">
-                    {/*son mesaj*/}
+                    {/* son mesaj */}
                   </p>
                 </div>
               </div>
@@ -135,13 +177,9 @@ function Chat() {
         </div>
       </div>
 
-      <div className="w-full h-screen">
-        {activeUser?.user_name ? (
-          <div
-            className={`${
-              showChat ? "flex" : "hidden"
-            } sm:flex flex-1 flex-col bg-gray-50 transition-all duration-300`}
-          >
+      <div className="flex-1 flex flex-col h-screen">
+        {activeUser ? (
+          <>
             <div className="px-4 sm:px-6 py-4 border-b border-gray-200 bg-white flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <button
@@ -154,7 +192,22 @@ function Chat() {
                   <p className="font-semibold text-gray-800 text-lg">
                     {activeUser.user_name}
                   </p>
-                  <p className="text-sm text-gray-500">Çevrimiçi</p>
+                  <p
+                    className={`${
+                      activeUser.is_online
+                        ? "text-md font-semibold text-green-500"
+                        : "text-sm text-gray-500"
+                    }`}
+                  >
+                    {activeUser?.is_online
+                      ? "Çevrimiçi"
+                      : activeUser.last_seen
+                      ? `Son görülme: ${formatDistanceToNow(
+                          new Date(activeUser.last_seen),
+                          { addSuffix: true, locale: tr }
+                        )}`
+                      : "Bilinmiyor"}
+                  </p>
                 </div>
               </div>
               <img
@@ -165,40 +218,61 @@ function Chat() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 bg-gray-50">
-              <div className="flex items-start gap-3">
-                {activeUser.avatar_url ? (
-                  <img
-                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full"
-                    src={activeUser.avatar_url}
-                  />
-                ) : (
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
-                    {activeUser ? activeUser.user_name[0] : "?"}
+              {messages.map((msg, index) => (
+                <div
+                  key={index}
+                  className={`${
+                    msg.sender_id === user?.id
+                      ? "flex justify-end"
+                      : "flex items-start gap-3"
+                  }`}
+                >
+                  {msg.sender_id !== user?.id && (
+                    <div>
+                      {activeUser.avatar_url ? (
+                        <img
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full"
+                          src={activeUser.avatar_url}
+                        />
+                      ) : (
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
+                          {activeUser.user_name[0]}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div
+                    className={`${
+                      msg.sender_id === user?.id
+                        ? "bg-blue-500 text-white px-4 py-2 rounded-2xl shadow-sm max-w-[75%] sm:max-w-xs"
+                        : "bg-white px-4 py-2 rounded-2xl shadow-sm max-w-[75%] sm:max-w-xs"
+                    }`}
+                  >
+                    <p>{msg.message}</p>
                   </div>
-                )}
-                <div className="bg-white px-4 py-2 rounded-2xl shadow-sm max-w-[75%] sm:max-w-xs">
-                  <p>Merhaba! Nasılsın?</p>
                 </div>
-              </div>
-
-              <div className="flex justify-end">
-                <div className="bg-blue-500 text-white px-4 py-2 rounded-2xl shadow-sm max-w-[75%] sm:max-w-xs">
-                  <p>İyiyim, sen?</p>
-                </div>
-              </div>
+              ))}
             </div>
 
-            <div className="fixed bottom-0 p-3 w-full sm:p-4 bg-white border-t border-gray-200 flex items-center gap-3">
+            <form
+              onSubmit={sendMessage}
+              className="p-3 sm:p-4 bg-white border-t border-gray-200 flex items-center gap-3"
+            >
               <input
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
                 type="text"
                 placeholder="Mesaj yaz..."
-                className="lg:w-[70%] sm:w-[57%] md:w-[65%] w-[85%] px-4 py-2 rounded-full bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                className="flex-1 px-4 py-2 rounded-full bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
               />
-              <button className="bg-blue-500 text-white px-4 sm:px-5 py-2 rounded-full hover:bg-blue-600 transition text-sm sm:text-base">
+              <button
+                type="submit"
+                className="bg-blue-500 text-white px-4 sm:px-5 py-2 rounded-full hover:bg-blue-600 transition text-sm sm:text-base"
+              >
                 Gönder
               </button>
-            </div>
-          </div>
+            </form>
+          </>
         ) : (
           <div className="flex flex-col items-center justify-center w-full h-full text-center text-gray-600 select-none">
             <img

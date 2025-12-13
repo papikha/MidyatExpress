@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaRegUser, FaBell } from "react-icons/fa";
+import { FaRegUser } from "react-icons/fa";
 import { IoSearchOutline, IoWallet } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "../redux/store";
@@ -9,6 +9,7 @@ import logo from "../images/Logo.png";
 import hazirlaniyor from "../images/hazırlanıyor.jpg";
 import { getUser } from "../redux/slices/UserSlice";
 import MessageBox from "../Components/MessageBox";
+import MessageButton from "../Components/MessageButton";
 
 function Home() {
   const { products } = useSelector((state: RootState) => state.products);
@@ -33,9 +34,8 @@ function Home() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.3),_transparent_70%)] pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,_rgba(255,255,255,0.2),_transparent_70%)] pointer-events-none" />
 
-      {/* Navbar */}
+      {/*Navbar*/}
       <nav className="flex justify-between items-center px-6 sm:px-10 py-4 bg-white/50 backdrop-blur-md shadow-md border-b border-white/30 sticky top-0 z-50 rounded-b-2xl transition-all duration-300">
-        {/* Logo */}
         <div className={`flex items-center gap-3 ${!searchActive || "hidden"}`}>
           <img
             src={logo}
@@ -47,7 +47,7 @@ function Home() {
           </h1>
         </div>
 
-        {/* Arama */}
+        {/*Arama*/}
         <div
           className={`flex items-center bg-white/60 rounded-full px-4 py-2 border border-white/50 shadow-inner transition-all duration-300
           ${searchActive ? "w-full" : "w-[60%] sm:w-[40%]"}`}
@@ -64,7 +64,6 @@ function Home() {
           />
         </div>
 
-        {/* İkonlar */}
         <div
           className={`flex items-center gap-2 transition-all duration-300 ${
             !searchActive || "hidden pointer-events-none"
@@ -82,12 +81,6 @@ function Home() {
                 </div>
                 <div className="w-3 h-3 bg-yellow-200 rotate-45 absolute left-1/2 transform -translate-x-1/2 -top-1"></div>
               </div>
-            </div>
-          )}
-
-          {user && (
-            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/50 flex items-center justify-center cursor-pointer hover:bg-indigo-200 border border-white/40 transition-all duration-300 shadow">
-              <FaBell className="text-indigo-800 text-lg sm:text-xl" />
             </div>
           )}
 
@@ -201,6 +194,7 @@ function Home() {
       {message && (
         <MessageBox/>
       )}
+      <MessageButton where="bottom" />
     </div>
   );
 }

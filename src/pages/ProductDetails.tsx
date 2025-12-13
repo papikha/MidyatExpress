@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { getAllProducts } from "../redux/slices/ProductSlice";
 import type { RootState, AppDispatch } from "../redux/store";
+import { TiArrowBack } from "react-icons/ti";
+import MessageButton from "../Components/MessageButton";
 
 function NewProductDetails() {
   const dispatch = useDispatch<AppDispatch>();
@@ -25,6 +27,13 @@ function NewProductDetails() {
 
   return (
     <div className="min-h-screen w-screen bg-gray-50 flex flex-col md:flex-row items-center md:items-start p-6 md:p-15 md:pt-6 pb-40">
+      <div
+        onClick={() => navigate("/")}
+        className="md:hidden fixed z-1000 flex left-5 items-center justify-center w-11 h-11 rounded-full bg-white/80 backdrop-blur-md shadow-lg cursor-pointer hover:scale-110 hover:shadow-xl active:scale-95 transition-all duration-300"
+      >
+        <TiArrowBack className="w-6 h-6 text-gray-700" />
+      </div>
+
       <div className="flex-shrink-0 w-32 h-32 md:w-64 md:h-64 lg:w-80 lg:h-80 flex justify-center items-center bg-gray-100 rounded-2xl shadow-lg relative mb-6 md:mb-0">
         {product.new_price && (
           <div className="absolute top-2 left-2 bg-red-500 text-white font-bold px-3 py-1 rounded-full text-sm md:text-base animate-pulse z-10">
@@ -39,7 +48,11 @@ function NewProductDetails() {
       </div>
 
       <div className="flex flex-col md:ml-10 gap-4 max-w-xl text-center md:text-left md:mb-60 mb-20">
-        <h1 className={`text-2xl md:text-4xl font-extrabold ${product.new_price ? "text-red-700" : "text-green-700"}`}>
+        <h1
+          className={`text-2xl md:text-4xl font-extrabold ${
+            product.new_price ? "text-red-700" : "text-green-700"
+          }`}
+        >
           {product.name}
         </h1>
         <p className="text-gray-700 text-sm md:text-lg leading-relaxed">
@@ -112,6 +125,7 @@ function NewProductDetails() {
           </div>
         </div>
       </div>
+      <MessageButton where="top" />
     </div>
   );
 }

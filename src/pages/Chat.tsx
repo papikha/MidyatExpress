@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
 import { IoSend } from "react-icons/io5";
+import { TiArrowBack } from "react-icons/ti";
 
 interface User {
   id: string;
@@ -335,6 +336,12 @@ function Chat() {
             </p>
           </div>
         )}
+      </div>
+      <div
+        onClick={() => navigate("/")}
+        className={`${!showChat || "hidden"} md:hidden fixed z-1000 flex left-2 bottom-2 items-center justify-center w-11 h-11 rounded-full bg-white/80 backdrop-blur-md shadow-lg cursor-pointer hover:scale-110 hover:shadow-xl active:scale-95 transition-all duration-300`}
+      >
+        <TiArrowBack className="w-6 h-6 text-gray-700" />
       </div>
     </div>
   );

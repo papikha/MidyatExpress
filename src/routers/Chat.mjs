@@ -52,6 +52,24 @@ router.post("/sendMessage", async (req, res) => {
   try {
     const { room, message, sender_id } = req.body;
 
+    const { count, error: countError } = await supabase
+      .from("chats")
+      .select("*", { count: "exact", head: true })
+      .eq("room_id", room);
+
+    if (countError) throw countError;
+
+    if (count >= 150) {
+      const { error: deleteError } = await supabase
+        .from("chats")
+        .delete()
+        .eq("room_id", room)
+        .order("created_at", { ascending: true })
+        .limit(1);
+
+      if (deleteError) throw deleteError;
+    }
+
     const { data, error } = await supabase.from("chats").insert({
       room_id: room,
       message,

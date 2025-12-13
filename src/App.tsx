@@ -28,7 +28,6 @@ function App() {
         last_seen: online ? null : new Date().toISOString(),
         id: user.id,
       });
-      console.log("Set online status:", online);
     };
 
     // İlk yüklemede veya isOnline değiştiğinde

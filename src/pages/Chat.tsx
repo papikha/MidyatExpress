@@ -9,6 +9,7 @@ import logo from "../images/Logo.png";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
+import { IoSend } from "react-icons/io5";
 
 interface User {
   id: string;
@@ -16,6 +17,13 @@ interface User {
   avatar_url?: string;
   is_online: boolean;
   last_seen: string;
+}
+
+interface Messages {
+  created_at: string;
+  room_id: string;
+  message: string;
+  sender_id: string;
 }
 
 function Chat() {
@@ -26,10 +34,14 @@ function Chat() {
   const { user } = useSelector((state: RootState) => state.user);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [message, setMessage] = useState<string>("");
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Messages[]>([]);
   const [room, setRoom] = useState<string>("");
 
   const lastKeyPressTime = useRef(0);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -127,7 +139,11 @@ function Chat() {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      <div className="hidden sm:flex flex-col w-1/4 bg-white border-r border-gray-200 shadow-sm">
+      <div
+        className={`${
+          showChat ? "hidden" : "flex"
+        } sm:flex flex-col w-full sm:w-1/4 bg-white border-r border-gray-200 shadow-sm`}
+      >
         <div className="p-4 border-b border-gray-200">
           <input
             onChange={searching}
@@ -180,13 +196,17 @@ function Chat() {
       <div className="flex-1 flex flex-col h-screen">
         {activeUser ? (
           <>
-            <div className="px-4 sm:px-6 py-4 border-b border-gray-200 bg-white flex items-center justify-between">
+            <div
+              className={`${
+                showChat || "max-sm:hidden"
+              } px-4 sm:px-6 py-4 border-b border-gray-200 bg-white flex items-center justify-between`}
+            >
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowChat(false)}
                   className="sm:hidden text-gray-600 hover:text-gray-800"
                 >
-                  <HiMenu className="text-2xl" />
+                  <HiMenu className="text-2xl cursor-pointer" />
                 </button>
                 <div>
                   <p className="font-semibold text-gray-800 text-lg">
@@ -217,7 +237,11 @@ function Chat() {
               />
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 bg-gray-50">
+            <div
+              className={`${
+                showChat || "max-sm:hidden"
+              } flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 bg-gray-50`}
+            >
               {messages.map((msg, index) => (
                 <div
                   key={index}
@@ -242,21 +266,44 @@ function Chat() {
                     </div>
                   )}
                   <div
-                    className={`${
+                    className={`relative px-4 py-2 rounded-2xl shadow-sm max-w-[75%] sm:max-w-xs ${
                       msg.sender_id === user?.id
-                        ? "bg-blue-500 text-white px-4 py-2 rounded-2xl shadow-sm max-w-[75%] sm:max-w-xs"
-                        : "bg-white px-4 py-2 rounded-2xl shadow-sm max-w-[75%] sm:max-w-xs"
+                        ? "bg-blue-500 text-white rounded-br-md"
+                        : "bg-white text-gray-800 rounded-bl-md"
                     }`}
                   >
-                    <p>{msg.message}</p>
+                    <p className="text-sm leading-relaxed break-words max-w-120">
+                      {msg.message}
+                    </p>
+
+                    <div className="flex justify-end mt-1">
+                      {msg.created_at &&
+                        !isNaN(new Date(msg.created_at).getTime()) && (
+                          <span
+                            className={`text-[11px] select-none ${
+                              msg.sender_id === user?.id
+                                ? "text-blue-100"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            {formatDistanceToNow(new Date(msg.created_at), {
+                              addSuffix: true,
+                              locale: tr,
+                            })}
+                          </span>
+                        )}
+                    </div>
                   </div>
                 </div>
               ))}
+              <div ref={messagesEndRef} />
             </div>
 
             <form
               onSubmit={sendMessage}
-              className="p-3 sm:p-4 bg-white border-t border-gray-200 flex items-center gap-3"
+              className={`${
+                showChat || "max-sm:hidden"
+              } p-3 sm:p-4 bg-white border-t border-gray-200 flex items-center gap-3`}
             >
               <input
                 value={message}
@@ -267,14 +314,14 @@ function Chat() {
               />
               <button
                 type="submit"
-                className="bg-blue-500 text-white px-4 sm:px-5 py-2 rounded-full hover:bg-blue-600 transition text-sm sm:text-base"
+                className="bg-blue-500 text-white max-sm:px-3 sm:px-5 py-2 rounded-full hover:bg-blue-600 transition text-sm sm:text-base"
               >
-                Gönder
+                <IoSend />
               </button>
             </form>
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center w-full h-full text-center text-gray-600 select-none">
+          <div className="max-sm:hidden flex flex-col items-center justify-center w-full h-full text-center text-gray-600 select-none">
             <img
               src={logo}
               onClick={() => navigate("/")}

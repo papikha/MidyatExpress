@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useFormik } from "formik";
 import { regSchema } from "../schemas/RegSchema";
 import setTypeState from "../hooks/SetTypeState";
 import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { getUser } from "../redux/slices/UserSlice";
+import type { AppDispatch, RootState } from "../redux/store";
+import NotFound from "./NotFound";
 
 interface RegisterValues {
   userName: string;
@@ -15,10 +19,16 @@ interface RegisterValues {
 
 function Register() {
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const { user } = useSelector((state: RootState) => state.user);
   const [type, eye, setTypeFunc] = setTypeState();
   const [type2, eye2, setTypeFunc2] = setTypeState();
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loadingText, setLoadingText] = useState<string>("Kayıt Ol");
+
+  useEffect(() => {
+        dispatch(getUser());
+      }, [dispatch]);
 
 const submit = async (values: RegisterValues) => {
   setLoadingText("Kayıt Olunuyor...");
@@ -60,6 +70,7 @@ const submit = async (values: RegisterValues) => {
 
   const { values, errors, touched, handleChange, handleSubmit } = formik;
 
+  if (user) return <NotFound/>;
   return (
     <div className="flex justify-center items-center w-full h-screen bg-gradient-to-br from-blue-300 via-indigo-200 to-purple-300">
       <form

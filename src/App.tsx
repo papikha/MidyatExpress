@@ -3,12 +3,13 @@ import "./css/App.css";
 import Home from "./pages/Home";
 import Login from "./Components/Login";
 import Register from "./Components/Register";
-import Confirm from "./pages/Confirm";
+import Confirm from "./Components/Confirm";
 import Profilim from "./pages/Profilim";
 import AdminPanel from "./pages/AdminPanel";
 import NotFound from "./Components/NotFound";
 import ProductDetails from "./pages/ProductDetails";
 import Chat from "./pages/Chat";
+import Cart from "./pages/Cart"
 import useIsOnline from "./hooks/useIsOnline";
 import { useEffect } from "react";
 import axios from "axios";
@@ -66,6 +67,7 @@ function App() {
         <Route path="/Profilim" element={<Profilim />} />
         <Route path="/Panel" element={<AdminPanel />} />
         <Route path="/Sohbetlerim" element={<Chat />} />
+        <Route path="/Sepetim" element={<Cart />} />
       </Routes>
     </div>
   );

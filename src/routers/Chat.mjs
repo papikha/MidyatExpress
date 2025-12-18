@@ -1,25 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 import { Router } from "express";
+import { insert } from "formik";
 const router = Router();
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY);
-
-router.post("/addRoom", async (req, res) => {
-  try {
-    const { user1_id, user2_id } = req.body;
-    const { data, error } = await supabase.from("rooms").insert({
-      user1_id,
-      user2_id,
-    });
-    if (error) throw error;
-    res.status(200).json(data);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error });
-  }
-});
 
 router.post("/users", async (req, res) => {
   try {
@@ -41,8 +27,19 @@ router.post("/users", async (req, res) => {
       .select("id, user_name, avatar_url, is_online, last_seen")
       .in("id", otherUserIds);
 
+    const newUsersData = usersData.map((u) => {
+      const room = rooms.find(
+        (room) => u.id === room.user1_id || u.id === room.user2_id
+      );
+
+      return {
+        ...u,
+        last_message: room?.last_message ?? "",
+      };
+    });
+
     if (usersError) throw usersError;
-    res.json(usersData);
+    res.json(newUsersData);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -52,36 +49,55 @@ router.post("/sendMessage", async (req, res) => {
   try {
     const { room, message, sender_id } = req.body;
 
-    const { count, error: countError } = await supabase
-      .from("chats")
-      .select("*", { count: "exact", head: true })
-      .eq("room_id", room);
-
-    if (countError) throw countError;
-
-    if (count >= 150) {
-      const { error: deleteError } = await supabase
-        .from("chats")
-        .delete()
-        .eq("room_id", room)
-        .order("created_at", { ascending: true })
-        .limit(1);
-
-      if (deleteError) throw deleteError;
+    const ids = room.split("_");
+    if (ids.length !== 2) {
+      return res.status(400).json({ message: "Invalid room format" });
     }
 
-    const { data, error } = await supabase.from("chats").insert({
+    const [userA, userB] = ids;
+
+    const { error: chatError } = await supabase.from("chats").insert({
       room_id: room,
       message,
       sender_id,
     });
+    if (chatError) throw chatError;
 
-    if (error) throw error;
+    const { data: existingRoom, error: selectError } = await supabase
+      .from("rooms")
+      .select("id")
+      .or(
+        `and(user1_id.eq.${userA},user2_id.eq.${userB}), and(user1_id.eq.${userB},user2_id.eq.${userA})`
+      )
+      .maybeSingle();
 
-    res.status(200).json({ success: true, data });
+    if (selectError) throw selectError;
+
+    if (existingRoom) {
+      const { error: updateError } = await supabase
+        .from("rooms")
+        .update({ last_message: message })
+        .eq("id", existingRoom.id);
+
+      if (updateError) throw updateError;
+    } else {
+      const { error: insertError } = await supabase.from("rooms").insert({
+        user1_id: userA,
+        user2_id: userB,
+        last_message: message,
+      });
+
+      if (insertError) throw insertError;
+    }
+
+    res.status(200).json({ success: true });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, error });
+    console.error("send message error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+      error,
+    });
   }
 });
 

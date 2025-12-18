@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useFormik } from "formik";
@@ -9,6 +9,8 @@ import MessageBox from "./MessageBox";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "../redux/store";
 import { setMessage } from "../redux/slices/MessageSlice";
+import NotFound from "./NotFound";
+import { getUser } from "../redux/slices/UserSlice";
 
 interface LoginValues {
   email: string;
@@ -19,9 +21,14 @@ function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { message } = useSelector((state: RootState) => state.message);
+  const { user } = useSelector((state: RootState) => state.user);
   const [type, eye, setTypeFunc] = setTypeState();
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loadingText, setLoadingText] = useState<string>("Giriş Yap");
+
+  useEffect(() => {
+      dispatch(getUser());
+    }, [dispatch]);
 
   const submit = async (values: LoginValues) => {
     setLoadingText("Giriş Yapılıyor...");
@@ -61,6 +68,7 @@ function Login() {
 
   const { values, errors, touched, handleChange, handleSubmit } = formik;
 
+  if (user) return <NotFound/>;
   return (
     <div className="flex justify-center items-center w-full h-screen bg-gradient-to-br from-blue-300 via-indigo-200 to-purple-300">
       <form

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaRegUser } from "react-icons/fa";
+import { FaRegUser, FaShoppingCart } from "react-icons/fa";
 import { IoSearchOutline, IoWallet } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "../redux/store";
@@ -10,6 +10,7 @@ import hazirlaniyor from "../images/hazırlanıyor.jpg";
 import { getUser } from "../redux/slices/UserSlice";
 import MessageBox from "../Components/MessageBox";
 import MessageButton from "../Components/MessageButton";
+import { RiDiscountPercentFill } from "react-icons/ri";
 
 function Home() {
   const { products } = useSelector((state: RootState) => state.products);
@@ -55,7 +56,7 @@ function Home() {
           <IoSearchOutline className="text-indigo-700 text-xl mr-2" />
           <input
             type="text"
-            placeholder="Ara"
+            placeholder="Her Şeyi Ara"
             className={`bg-transparent outline-none text-indigo-800 w-full placeholder-indigo-400 ${
               searchActive || "w-full"
             }`}
@@ -70,16 +71,25 @@ function Home() {
           }`}
         >
           {!loading && user && (
-            <div className="relative group">
-              <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/50 flex items-center justify-center cursor-pointer hover:bg-yellow-100 border border-white/40 transition-all duration-300 shadow">
-                <IoWallet className="w-[70%] h-[70%]" />
+            <div className="relative flex items-center gap-2">
+              <div className="relative group">
+                <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/60 backdrop-blur-md flex items-center justify-center cursor-pointer border border-white/40 transition-all duration-300 shadow-md hover:scale-105">
+                  <IoWallet className="w-[65%] h-[65%]" />
+                </div>
+
+                <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                  <div className="relative bg-yellow-200 text-yellow-900 text-sm font-semibold px-4 py-1.5 rounded-xl shadow-lg whitespace-nowrap text-center">
+                    ₺{user.balance}
+                    <span className="absolute w-3 h-3 bg-yellow-200 rotate-45 left-1/2 -translate-x-1/2 -top-1"></span>
+                  </div>
+                </div>
               </div>
 
-              <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-300 pointer-events-none">
-                <div className="bg-yellow-200 text-yellow-900 text-sm font-semibold px-3 py-1 rounded-xl shadow-md whitespace-nowrap text-center">
-                  ₺{user.balance}
-                </div>
-                <div className="w-3 h-3 bg-yellow-200 rotate-45 absolute left-1/2 transform -translate-x-1/2 -top-1"></div>
+              <div
+                onClick={() => navigate("/sepetim")}
+                className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-green-500/90 flex items-center justify-center cursor-pointer hover:bg-green-600 border border-green-400 transition-all duration-300 shadow-lg hover:scale-105"
+              >
+                <FaShoppingCart className="w-5 h-5 text-white" />
               </div>
             </div>
           )}
@@ -114,8 +124,8 @@ function Home() {
 
         {/* Fırsatlar */}
         <section className="w-full max-w-7xl mb-16">
-          <h3 className="text-3xl font-bold text-red-600 mb-6 text-left px-1">
-            Fırsatlar 🔥
+          <h3 className="flex flex-row text-3xl font-bold text-red-600 mb-6 text-left px-1">
+            Fırsatlar <RiDiscountPercentFill className="ml-3 mt-1" />
           </h3>
           <div className="overflow-x-auto scrollbar-hide">
             <div className="flex space-x-6 px-2 pb-2 snap-x snap-mandatory">
@@ -191,10 +201,8 @@ function Home() {
           </div>
         </section>
       </main>
-      {message && (
-        <MessageBox/>
-      )}
-      <MessageButton where="bottom" />
+      {message && <MessageBox />}
+      {user?.id ? <MessageButton where="bottom" /> : ""}
     </div>
   );
 }

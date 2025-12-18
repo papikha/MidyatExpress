@@ -217,8 +217,8 @@ function Profilim() {
 
   const { values, errors, touched, handleChange, handleSubmit } = formik;
 
-  if (!user?.id) return <NotFound />;
 
+  if (!user) return <NotFound/>;
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-indigo-200 via-sky-200 to-pink-200 flex justify-center items-start p-4 sm:p-6">
       <div
@@ -294,7 +294,7 @@ function Profilim() {
           </div>
         </div>
 
-        {/* Aksiyonlar */}
+        {/**/}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <button
             onClick={() => navigate("/sepetim")}
@@ -394,7 +394,7 @@ function Profilim() {
           />
         )}
       </div>
-      <MessageButton where="bottom" />
+      {user?.id ? <MessageButton where="bottom" /> : ""}
     </div>
   );
 }

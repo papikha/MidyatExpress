@@ -11,6 +11,7 @@ import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
 import { IoSend } from "react-icons/io5";
 import { TiArrowBack } from "react-icons/ti";
+import NotFound from "../Components/NotFound";
 
 interface User {
   id: string;
@@ -18,9 +19,11 @@ interface User {
   avatar_url?: string;
   is_online: boolean;
   last_seen: string;
+  last_message: string;
 }
 
 interface Messages {
+  id: number;
   created_at: string;
   room_id: string;
   message: string;
@@ -36,7 +39,6 @@ function Chat() {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState<Messages[]>([]);
-  const [room, setRoom] = useState<string>("");
 
   const lastKeyPressTime = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -67,6 +69,7 @@ function Chat() {
     const getUsers = async () => {
       try {
         const response = await axios.post("/api/chat/users", { id: user.id });
+        console.log(response.data);
         setUsers(response.data);
         setUsersWithRoom(response.data);
       } catch (err) {
@@ -81,7 +84,7 @@ function Chat() {
     };
   }, [user]);
 
-  const searching = (e: any) => {
+  const search = (e: any) => {
     const value = e.target.value;
     if (value.length < 3) return setUsers(usersWithRoom);
     lastKeyPressTime.current = Date.now();
@@ -100,6 +103,11 @@ function Chat() {
     }, 500);
   };
 
+  const searchContacts = (e: any) => {
+    const value = e.target.value;
+    setUsers(usersWithRoom.filter((user) => user.user_name.includes(value)));
+  };
+
   useEffect(() => {
     socket?.on("receive_message", (data) => {
       setMessages((prev: any) => [...prev, data]);
@@ -108,25 +116,22 @@ function Chat() {
 
   const sendMessage = async (e: any) => {
     e.preventDefault();
+
     if (!activeUser) return;
-    if (message.length < 2) return;
+    if (message.trim().length < 2) return;
+
     setMessage("");
 
-    const exists = usersWithRoom.some((u) => u.id === activeUser.id);
-    if (!exists) {
-      try {
-        await axios.post("/api/chat/addRoom", {
-          user1_id: user?.id,
-          user2_id: activeUser?.id,
-        });
-      } catch (error) {
-        console.error(error);
-        return;
-      }
-    }
-    socket?.emit("send_message", { room, message, sender_id: user?.id });
+    const roomId = [user?.id, activeUser.id].sort().join("_");
+
+    socket?.emit("send_message", {
+      room: roomId,
+      message,
+      sender_id: user?.id,
+    });
+
     await axios.post("/api/chat/sendMessage", {
-      room,
+      room: roomId,
       message,
       sender_id: user?.id,
     });
@@ -134,10 +139,17 @@ function Chat() {
 
   const getChats = async (room: string) => {
     setMessage("");
+
     const response: any = await axios.post("/api/chat/getMessages", { room });
-    setMessages(response.data || []);
+
+    const sortedMessages = (response.data || []).sort(
+      (a: any, b: any) => a.id - b.id
+    );
+
+    setMessages(sortedMessages);
   };
 
+  if (!user) return <NotFound />;
   return (
     <div className="flex h-screen bg-gray-100">
       <div
@@ -147,7 +159,7 @@ function Chat() {
       >
         <div className="p-4 border-b border-gray-200">
           <input
-            onChange={searching}
+            onChange={search}
             type="text"
             placeholder="Yeni kişi ara..."
             className="w-full px-4 py-2 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-700"
@@ -162,8 +174,7 @@ function Chat() {
                 key={u.id}
                 onClick={() => {
                   setActiveUser(u);
-                  const roomName = [user?.id, u.id].sort().join("-");
-                  setRoom(roomName);
+                  const roomName = [user?.id, u.id].sort().join("_");
                   socket?.emit("join_room", roomName);
                   getChats(roomName);
                   setShowChat(true);
@@ -186,12 +197,22 @@ function Chat() {
                     {u.user_name}
                   </p>
                   <p className="text-sm text-gray-500 truncate">
-                    {/* son mesaj */}
+                    {u.last_message}
                   </p>
                 </div>
               </div>
             ))}
         </div>
+        {usersWithRoom[1] && (
+          <div className="p-4 border-t border-gray-200">
+            <input
+              onChange={searchContacts}
+              type="text"
+              placeholder="Kişiler de Ara..."
+              className="w-full px-4 py-2 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-gray-700"
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex-1 flex flex-col h-screen">
@@ -210,9 +231,21 @@ function Chat() {
                   <HiMenu className="text-2xl cursor-pointer" />
                 </button>
                 <div>
-                  <p className="font-semibold text-gray-800 text-lg">
-                    {activeUser.user_name}
-                  </p>
+                  <div className="flex flex-row items-center gap-3">
+                    {activeUser.avatar_url ? (
+                      <img
+                        className="w-10 h-10 sm:w-10 sm:h-10 rounded-full"
+                        src={activeUser.avatar_url}
+                      />
+                    ) : (
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
+                        {activeUser.user_name[0]}
+                      </div>
+                    )}
+                    <p className="font-semibold text-gray-800 text-lg">
+                      {activeUser.user_name}
+                    </p>
+                  </div>
                   <p
                     className={`${
                       activeUser.is_online
@@ -339,7 +372,9 @@ function Chat() {
       </div>
       <div
         onClick={() => navigate("/")}
-        className={`${!showChat || "hidden"} md:hidden fixed z-1000 flex left-2 bottom-2 items-center justify-center w-11 h-11 rounded-full bg-white/80 backdrop-blur-md shadow-lg cursor-pointer hover:scale-110 hover:shadow-xl active:scale-95 transition-all duration-300`}
+        className={`${
+          !showChat || "hidden"
+        } md:hidden fixed z-1000 flex right-2 bottom-20 items-center justify-center w-11 h-11 rounded-full bg-white/80 backdrop-blur-md shadow-lg cursor-pointer hover:scale-110 hover:shadow-xl active:scale-95 transition-all duration-300`}
       >
         <TiArrowBack className="w-6 h-6 text-gray-700" />
       </div>

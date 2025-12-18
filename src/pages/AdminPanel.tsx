@@ -9,8 +9,12 @@ import NotFound from "../Components/NotFound";
 import Loading from "../Components/Loading";
 import { setMessage } from "../redux/slices/MessageSlice";
 import MessageBox from "../Components/MessageBox";
+import MessageButton from "../Components/MessageButton";
+import { TiArrowBack } from "react-icons/ti";
+import { useNavigate } from "react-router-dom";
 
 function AdminPanel() {
+  const navigate = useNavigate();
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -53,7 +57,13 @@ function AdminPanel() {
     },
     validationSchema: panelSchema,
     onSubmit: async (values, { resetForm }) => {
-      if (!file) return dispatch(setMessage({message: "Lütfen ürün görseli yükleyin.", messageColor: "#f23f3f"}));
+      if (!file)
+        return dispatch(
+          setMessage({
+            message: "Lütfen ürün görseli yükleyin.",
+            messageColor: "#f23f3f",
+          })
+        );
       try {
         setLoading(true);
 
@@ -69,13 +79,30 @@ function AdminPanel() {
           headers: { "Content-Type": "multipart/form-data" },
         });
 
-        dispatch(setMessage({message: res.data.message, messageColor: "#f2d73f"}));
+        dispatch(
+          setMessage({ message: res.data.message, messageColor: "#f2d73f" })
+        );
         resetForm();
         setFile(null);
         setPreview(null);
       } catch (err: any) {
-        if (err.message.includes("Products_name_key") || err.response.data.error.includes("Products_name_key"))  dispatch(setMessage({message: `Hata: Zaten Bu isimde Başka Bir Ürün Var`, messageColor: "#f23f3f"}));
-        else dispatch(setMessage({message: `Hata:  ${(err.response?.data?.error || err.message)}`, messageColor: "#f23f3f"}));
+        if (
+          err.message.includes("Products_name_key") ||
+          err.response.data.error.includes("Products_name_key")
+        )
+          dispatch(
+            setMessage({
+              message: `Hata: Zaten Bu isimde Başka Bir Ürün Var`,
+              messageColor: "#f23f3f",
+            })
+          );
+        else
+          dispatch(
+            setMessage({
+              message: `Hata:  ${err.response?.data?.error || err.message}`,
+              messageColor: "#f23f3f",
+            })
+          );
       } finally {
         setLoading(false);
       }
@@ -235,9 +262,14 @@ function AdminPanel() {
             {loading ? "Yükleniyor..." : "Ürünü Kaydet"}
           </button>
         </form>
-        {message && (
-        <MessageBox/>
-      )}
+        {message && <MessageBox />}
+      </div>
+      <MessageButton where="bottom" />
+      <div
+        onClick={() => navigate("/")}
+        className="md:hidden fixed z-1000 flex right-5 bottom-5 items-center justify-center w-11 h-11 rounded-full bg-white/80 backdrop-blur-md shadow-lg cursor-pointer hover:scale-110 hover:shadow-xl active:scale-95 transition-all duration-300"
+      >
+        <TiArrowBack className="w-6 h-6 text-gray-700" />
       </div>
     </div>
   );

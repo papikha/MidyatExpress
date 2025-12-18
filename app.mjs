@@ -5,6 +5,7 @@ import UsersRouter from "./src/routers/users.mjs";
 import PanelRouter from "./src/routers/Panel.mjs";
 import ProfileRouter from "./src/routers/Profile.mjs";
 import ChatRouter from "./src/routers/Chat.mjs";
+import CartRouter from "./src/routers/Cart.mjs";
 import { Server } from "socket.io";
 import { createServer } from "http";
 
@@ -23,6 +24,7 @@ app.use("/api/users", UsersRouter);
 app.use("/api/panel", PanelRouter);
 app.use("/api/profile", ProfileRouter);
 app.use("/api/chat", ChatRouter);
+app.use("/api/cart", CartRouter);
 
 const port = process.env.PORT || 8000;
 

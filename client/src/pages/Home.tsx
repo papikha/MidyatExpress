@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaRegUser, FaShoppingCart } from "react-icons/fa";
-import { IoSearchOutline, IoWallet } from "react-icons/io5";
+import { IoSearchOutline } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "../redux/store";
 import { getAllProducts } from "../redux/slices/ProductSlice";
@@ -72,19 +72,6 @@ function Home() {
         >
           {!loading && user && (
             <div className="relative flex items-center gap-2">
-              <div className="relative group">
-                <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/60 backdrop-blur-md flex items-center justify-center cursor-pointer border border-white/40 transition-all duration-300 shadow-md hover:scale-105">
-                  <IoWallet className="w-[65%] h-[65%]" />
-                </div>
-
-                <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                  <div className="relative bg-yellow-200 text-yellow-900 text-sm font-semibold px-4 py-1.5 rounded-xl shadow-lg whitespace-nowrap text-center">
-                    ₺{user.balance}
-                    <span className="absolute w-3 h-3 bg-yellow-200 rotate-45 left-1/2 -translate-x-1/2 -top-1"></span>
-                  </div>
-                </div>
-              </div>
-
               <div
                 onClick={() => navigate("/sepetim")}
                 className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-green-500/90 flex items-center justify-center cursor-pointer hover:bg-green-600 border border-green-400 transition-all duration-300 shadow-lg hover:scale-105"

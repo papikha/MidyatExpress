@@ -1,11 +1,11 @@
 import "dotenv/config";
 import express from "express";
-import HomeRouter from "./src/routers/Home.mjs";
-import UsersRouter from "./src/routers/users.mjs";
-import PanelRouter from "./src/routers/Panel.mjs";
-import ProfileRouter from "./src/routers/Profile.mjs";
-import ChatRouter from "./src/routers/Chat.mjs";
-import CartRouter from "./src/routers/Cart.mjs";
+import HomeRouter from "./routers/Home.mjs";
+import UsersRouter from "./routers/users.mjs";
+import PanelRouter from "./routers/Panel.mjs";
+import ProfileRouter from "./routers/Profile.mjs";
+import ChatRouter from "./routers/Chat.mjs";
+import CartRouter from "./routers/Cart.mjs";
 import { Server } from "socket.io";
 import { createServer } from "http";
 

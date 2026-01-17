@@ -1,6 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
 import { Router } from "express";
-import { insert } from "formik";
 const router = Router();
 
 const SUPABASE_URL = process.env.SUPABASE_URL;

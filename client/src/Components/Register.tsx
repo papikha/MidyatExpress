@@ -2,67 +2,69 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useFormik } from "formik";
-import { loginSchema } from "../schemas/LoginSchema";
+import { regSchema } from "../schemas/RegSchema";
 import setTypeState from "../hooks/SetTypeState";
-import { supabase } from "../../supabaseClient";
-import MessageBox from "./MessageBox";
+import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import type { RootState, AppDispatch } from "../redux/store";
-import { setMessage } from "../redux/slices/MessageSlice";
-import NotFound from "./NotFound";
 import { getUser } from "../redux/slices/UserSlice";
+import type { AppDispatch, RootState } from "../redux/store";
+import NotFound from "./NotFound";
 
-interface LoginValues {
+interface RegisterValues {
+  userName: string;
   email: string;
   password: string;
+  confirmPassword: string;
 }
 
-function Login() {
+function Register() {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { message } = useSelector((state: RootState) => state.message);
   const { user } = useSelector((state: RootState) => state.user);
   const [type, eye, setTypeFunc] = setTypeState();
+  const [type2, eye2, setTypeFunc2] = setTypeState();
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [loadingText, setLoadingText] = useState<string>("Giriş Yap");
+  const [loadingText, setLoadingText] = useState<string>("Kayıt Ol");
 
   useEffect(() => {
-      dispatch(getUser());
-    }, [dispatch]);
+        dispatch(getUser());
+      }, [dispatch]);
 
-  const submit = async (values: LoginValues) => {
-    setLoadingText("Giriş Yapılıyor...");
-    setErrorMessage("");
+const submit = async (values: RegisterValues) => {
+  setLoadingText("Kayıt Olunuyor...");
+  setErrorMessage("");
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+  try {
+    await axios.post("/api/users/register", {
+      user_name: values.userName,
       email: values.email,
       password: values.password,
     });
 
-    if (error) {
-      if (error.message.includes("Email not confirmed")){
-        setErrorMessage("Email adresi doğrulanmamış");
-      }else if (error.message.includes("Invalid login credentials")){
-        setErrorMessage("Giriş yapmaya çalıştığınız bilgilerden biri ve ya ikisi yanlış");
-      }else{
-        setErrorMessage(error.message); 
-      }
-      
-      setLoadingText("Giriş Yap");
-    } else {
-      localStorage.setItem("sb_token", data.session.access_token);
-      setLoadingText("Giriş Başarılı!");
-      dispatch(setMessage({message: "Başarıyla Giriş Yaptınız", messageColor: "#2bd92b"}))
-      navigate("/");
+    setLoadingText("Kayıt Başarılı!");
+    navigate("/Onay");
+  } catch (err: any) {
+    if (err.response?.data?.error.includes("users_email_key")){
+      setErrorMessage("Bu email adresi zaten kayıtlı");
+    }else if (err.response?.data?.error.includes("users_user_name_key")){
+      setErrorMessage("Bu isimde başka kullanıcı kayıtlı");
+    } else{
+      setErrorMessage("Bir hata oluştu.");
     }
-  };
+    
+    setLoadingText("Kayıt Ol");
+  }
+};
 
-  const formik = useFormik<LoginValues>({
+
+  const formik = useFormik<RegisterValues>({
     initialValues: {
+      userName: "",
       email: "",
       password: "",
+      confirmPassword: "",
     },
-    validationSchema: loginSchema,
+    validationSchema: regSchema,
     onSubmit: submit,
   });
 
@@ -78,6 +80,25 @@ function Login() {
         <h2 className="text-2xl font-semibold text-center text-indigo-700">
           {loadingText}
         </h2>
+
+        {/* Username */}
+        <div>
+          <label className="font-medium text-gray-700">Kullanıcı Adı</label>
+          <input
+            name="userName"
+            value={values.userName}
+            onChange={handleChange}
+            placeholder="Lütfen gerçek adınızı girmeyiniz"
+            className={`w-full border rounded-md px-4 py-2 mt-1 focus:outline-none focus:ring-2 ${
+              errors.userName && touched.userName
+                ? "border-red-400 focus:ring-red-300"
+                : "border-indigo-300 focus:ring-indigo-400"
+            }`}
+          />
+          {errors.userName && touched.userName && (
+            <p className="text-sm text-red-500 mt-1">{errors.userName}</p>
+          )}
+        </div>
 
         {/* Email */}
         <div>
@@ -125,6 +146,37 @@ function Login() {
           )}
         </div>
 
+        {/* Confirm Password */}
+        <div className="relative">
+          <label className="font-medium text-gray-700">
+            Şifreyi Doğrulayın
+          </label>
+          <input
+            name="confirmPassword"
+            type={type2}
+            value={values.confirmPassword}
+            onChange={handleChange}
+            placeholder="Şifrenizi tekrar giriniz"
+            className={`w-full border rounded-md px-4 py-2 mt-1 focus:outline-none focus:ring-2 ${
+              errors.confirmPassword && touched.confirmPassword
+                ? "border-red-400 focus:ring-red-300"
+                : "border-indigo-300 focus:ring-indigo-400"
+            }`}
+          />
+          <div className="absolute top-[38px]  right-3 text-gray-600 cursor-pointer">
+            {eye2 ? (
+              <FaEyeSlash size={20} onClick={setTypeFunc2} />
+            ) : (
+              <FaEye size={20} onClick={setTypeFunc2} />
+            )}
+          </div>
+          {errors.confirmPassword && touched.confirmPassword && (
+            <p className="text-sm text-red-500 mt-1">
+              {errors.confirmPassword}
+            </p>
+          )}
+        </div>
+
         {/* Error message */}
         {errorMessage && (
           <p className="text-center text-red-500 font-medium">{errorMessage}</p>
@@ -139,20 +191,17 @@ function Login() {
         </button>
 
         <p className="text-center text-gray-700 text-sm mt-2">
-          Hesabın yok mu?{" "}
+          Zaten hesabın var mı?{" "}
           <span
-            onClick={() => navigate("/Kayıt")}
+            onClick={() => navigate("/Giriş")}
             className="text-indigo-600 hover:underline cursor-pointer"
           >
-            Kayıt ol
+            Giriş yap
           </span>
         </p>
       </form>
-      {message && (
-        <MessageBox/>
-      )}
     </div>
   );
 }
 
-export default Login;
+export default Register;

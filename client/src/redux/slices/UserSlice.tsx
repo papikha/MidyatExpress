@@ -6,7 +6,6 @@ export interface User {
   id: string;
   user_name: string;
   email: string;
-  balance: string;
   avatar_url: string;
   is_admin: boolean;
 }

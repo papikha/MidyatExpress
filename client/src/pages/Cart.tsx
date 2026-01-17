@@ -245,10 +245,10 @@ function Cart(): JSX.Element {
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between text-gray-600">
                   <span>Ara Toplam</span>
-                  <span>₺{subtotal}</span>
+                  <span>₺{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                  <span>Ara Toplam</span>
+                  <span>Kargo Ücreti</span>
                   <span>₺{subtotal >= 1000 ? "0" : "50"}</span>
                 </div>
 
@@ -260,7 +260,7 @@ function Cart(): JSX.Element {
                 </div>
               </div>
 
-              <button className="mt-6 w-full rounded-2xl bg-gradient-to-r from-orange-500 to-rose-500 py-3 text-white font-semibold shadow-lg hover:opacity-90 transition">
+              <button className="mt-6 w-full rounded-2xl bg-gradient-to-r from-orange-500 to-rose-500 py-3 text-white font-semibold shadow-lg hover:opacity-90 transition cursor-pointer">
                 Ödemeye Geç
               </button>
             </div>

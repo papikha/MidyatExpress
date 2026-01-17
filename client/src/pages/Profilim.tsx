@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "../redux/store";
@@ -7,7 +7,6 @@ import axios from "axios";
 import { supabase } from "../../supabaseClient";
 import { PiUploadSimpleBold } from "react-icons/pi";
 import { FaUserCircle, FaShoppingCart, FaUserLock } from "react-icons/fa";
-import { IoWallet } from "react-icons/io5";
 import { MdLogout, MdNoAccounts } from "react-icons/md";
 import { IoIosRemoveCircle } from "react-icons/io";
 import { RiAdminFill } from "react-icons/ri";
@@ -38,8 +37,6 @@ function Profilim() {
   const [onConfirm, setOnConfirm] = useState<(() => void) | null>(null);
   const { message } = useSelector((state: RootState) => state.message);
   const navigate = useNavigate();
-  const walletRef = useRef<HTMLDivElement>(null);
-  const [balanceOpen, setBalanceOpen] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
@@ -47,19 +44,6 @@ function Profilim() {
   useEffect(() => {
     dispatch(getUser());
   }, [dispatch]);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        walletRef.current &&
-        !walletRef.current.contains(event.target as Node)
-      ) {
-        setBalanceOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   //* Çıkış Yapma
   const handleLogout = () => {
@@ -228,21 +212,6 @@ function Profilim() {
         <TiArrowBack className="w-6 h-6 text-gray-700" />
       </div>
       <div className="relative w-full max-w-6xl bg-white/80 backdrop-blur-xl rounded-3xl shadow-[0_30px_80px_rgba(0,0,0,0.18)] p-6 sm:p-10 space-y-10">
-        {/* Wallet */}
-        <div ref={walletRef} className="absolute top-5 right-5 z-50">
-          <button
-            onClick={() => setBalanceOpen(!balanceOpen)}
-            className="w-12 h-12 rounded-full bg-white shadow-md hover:shadow-xl transition flex items-center justify-center"
-          >
-            <IoWallet className="w-6 h-6" />
-          </button>
-
-          {balanceOpen && (
-            <div className="absolute right-0 mt-2 bg-yellow-300 text-yellow-900 px-4 py-1 rounded-xl text-sm font-semibold shadow-lg">
-              ₺{user.balance}
-            </div>
-          )}
-        </div>
 
         {/* Profil Header */}
         <div className="flex flex-col md:flex-row items-center md:items-start gap-8">

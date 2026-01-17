@@ -39,7 +39,6 @@ router.post("/delete", async (req, res) => {
       }
     }
 
-    // DB'den avatar_url temizle
     const { error: updateError } = await supabase
       .from("users")
       .update({ avatar_url: null })
@@ -55,13 +54,11 @@ router.post("/delete", async (req, res) => {
   }
 });
 
-// POST /api/profile
 router.post("/", upload.single("avatar"), async (req, res) => {
   try {
     const { userId } = req.body;
     if (!userId || !req.file) return res.status(400).send("Eksik veri");
 
-    // 1️⃣ Kullanıcıyı al
     const { data: user, error: userError } = await supabase
       .from("users")
       .select("*")
@@ -69,19 +66,16 @@ router.post("/", upload.single("avatar"), async (req, res) => {
       .single();
     if (userError) return res.status(500).send("Kullanıcı bulunamadı");
 
-    // 3️⃣ Yeni avatarı yükle
     const fileName = `${uuidv4()}${path.extname(req.file.originalname)}`;
     const filePath = fileName; // sadece dosya adı, bucket zaten "avatar_images"
     await supabase.storage
       .from("avatar_images")
       .upload(filePath, req.file.buffer, { upsert: true, contentType: req.file.mimetype });
 
-    // 4️⃣ Public URL al
     const {
       data: { publicUrl },
     } = supabase.storage.from("avatar_images").getPublicUrl(filePath);
 
-    // 5️⃣ Veritabanını güncelle
     await supabase
       .from("users")
       .update({ avatar_url: publicUrl })

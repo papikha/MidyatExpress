@@ -10,6 +10,12 @@ const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY);
 
 router.post("/", upload.single("file"), async (req, res) => {
+  const id = req.user.id;
+  const role = req.user.role
+  console.log(req.user)
+  if (!id || role !== "admin"){
+    return res.status(403).json("Yetkisiz erişim")
+  }
   try {
     const { name, price, stock, description, new_price } = req.body;
 

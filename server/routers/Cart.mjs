@@ -5,16 +5,11 @@ const router = Router();
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_SECRET_KEY) {
-  throw new Error("Supabase env variables eksik");
-}
-
 const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY);
 
 router.post("/", async (req, res) => {
   try {
-    const { id } = req.body;
+    const id = req.user.id
 
     if (!id) {
       return res.status(400).json({
@@ -66,7 +61,8 @@ router.post("/", async (req, res) => {
 
 router.post("/remove", async (req, res) => {
   try {
-    const { product_id, user_id } = req.body;
+    const { product_id } = req.body;
+    const user_id = req.user.id
     const { data, error } = await supabase
       .from("carts")
       .delete()
@@ -82,7 +78,8 @@ router.post("/remove", async (req, res) => {
 
 router.post("/iord", async (req, res) => {
   try {
-    const { product_id, user_id, increase } = req.body;
+    const { product_id, increase } = req.body;
+    const user_id = req.user.id
 
     if (!product_id || !user_id) {
       return res.status(400).json({ message: "Eksik veri" });
@@ -137,7 +134,8 @@ router.post("/iord", async (req, res) => {
 
 router.post("/thisProduct", async (req, res) => {
   try {
-    const { product_id, user_id } = req.body;
+    const { product_id } = req.body;
+    const user_id = req.user.id
 
     if (!product_id || !user_id) {
       return res.status(400).json({ quantity: 0 });

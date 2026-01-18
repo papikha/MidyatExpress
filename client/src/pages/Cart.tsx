@@ -1,4 +1,5 @@
-import axios, { type AxiosResponse } from "axios";
+import api from "../api/axios";
+import type { AxiosResponse } from "axios";
 import { useEffect, useState, type JSX } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../redux/store";
@@ -35,8 +36,8 @@ function Cart(): JSX.Element {
 
     const getProducts = async (): Promise<void> => {
       try {
-        const response: AxiosResponse<CartProduct[]> = await axios.post(
-          "/api/cart",
+        const response: AxiosResponse<CartProduct[]> = await api.post(
+          "/cart",
           { id: user.id }
         );
 
@@ -72,7 +73,7 @@ function Cart(): JSX.Element {
 
   const removeProduct = async (product_id: number) => {
     try {
-      await axios.post("/api/cart/remove", { product_id, user_id: user?.id });
+      await api.post("/cart/remove", { product_id, user_id: user?.id });
 
       setProducts((prev) =>
         prev.filter((item) => item.product_id !== product_id)
@@ -88,7 +89,7 @@ function Cart(): JSX.Element {
     increase: boolean
   ) => {
     try {
-      axios.post("/api/cart/iord", { product_id, user_id: user?.id, increase });
+      api.post("/cart/iord", { product_id, user_id: user?.id, increase });
       if (!increase && quantity <= 1) {
         setProducts((prev) =>
           prev.filter((item) => item.product_id !== product_id)

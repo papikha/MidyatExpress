@@ -7,18 +7,18 @@ import path from "path";
 const router = Router();
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SECRET_KEY
+  process.env.SUPABASE_SECRET_KEY,
 );
 
 // Multer setup
 const upload = multer({ storage: multer.memoryStorage() });
 
-router.post("/delete", async (req, res) => {
+router.delete("/", async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user.id;
     if (!userId) return res.status(400).json({ message: "Kullanıcı ID eksik" });
 
-    // Kullanıcının avatar_url'ini al
+    // Kullanıcının avatar_urlini al
     const { data: user, error: fetchError } = await supabase
       .from("users")
       .select("avatar_url")
@@ -56,7 +56,7 @@ router.post("/delete", async (req, res) => {
 
 router.post("/", upload.single("avatar"), async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user.id;
     if (!userId || !req.file) return res.status(400).send("Eksik veri");
 
     const { data: user, error: userError } = await supabase
@@ -70,7 +70,10 @@ router.post("/", upload.single("avatar"), async (req, res) => {
     const filePath = fileName; // sadece dosya adı, bucket zaten "avatar_images"
     await supabase.storage
       .from("avatar_images")
-      .upload(filePath, req.file.buffer, { upsert: true, contentType: req.file.mimetype });
+      .upload(filePath, req.file.buffer, {
+        upsert: true,
+        contentType: req.file.mimetype,
+      });
 
     const {
       data: { publicUrl },

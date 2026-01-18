@@ -3,7 +3,6 @@ import type { ChangeEvent } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "../redux/store";
 import { clearUser, getUser } from "../redux/slices/UserSlice";
-import axios from "axios";
 import { supabase } from "../../supabaseClient";
 import { PiUploadSimpleBold } from "react-icons/pi";
 import { FaUserCircle, FaShoppingCart, FaUserLock } from "react-icons/fa";
@@ -19,6 +18,7 @@ import { setMessage } from "../redux/slices/MessageSlice";
 import ConfirmBox from "../Components/ConfirmBox";
 import MessageButton from "../Components/MessageButton";
 import { TiArrowBack } from "react-icons/ti";
+import api from "../api/axios";
 
 const passwordSchema = Yup.object({
   password: Yup.string()
@@ -72,7 +72,7 @@ function Profilim() {
     );
     setOnConfirm(() => async () => {
       try {
-        await axios.delete(`/api/users/${user?.id}`);
+        await api.delete("/api/users");
         dispatch(
           setMessage({
             message: "Hesap Kalıcı Olarak Silindi",
@@ -103,7 +103,7 @@ function Profilim() {
     formData.append("userId", user!.id);
 
     try {
-      await axios.post("/api/profile", formData, {
+      await api.post("/api/profile", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       dispatch(getUser());
@@ -130,7 +130,7 @@ function Profilim() {
     setConfirmMessage("Avatarı silmek istediğine emin misin?");
     setOnConfirm(() => async () => {
       try {
-        await axios.post("/api/profile/delete", { userId: user?.id });
+        await api.post("/api/profile/delete");
         dispatch(getUser());
         dispatch(
           setMessage({
@@ -297,7 +297,7 @@ function Profilim() {
             <span className="font-semibold">Hesabı Sil</span>
           </button>
 
-          {user.is_admin && (
+          {user.role == "admin" && (
             <button
               onClick={() => navigate("/panel")}
               className="flex items-center gap-3 bg-indigo-600 text-white py-4 rounded-2xl shadow-lg hover:scale-[1.03] hover:bg-indigo-700 transition"

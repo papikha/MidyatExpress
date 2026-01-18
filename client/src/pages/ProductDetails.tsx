@@ -6,7 +6,7 @@ import type { RootState, AppDispatch } from "../redux/store";
 import { TiArrowBack } from "react-icons/ti";
 import MessageButton from "../Components/MessageButton";
 import { RiDiscountPercentFill } from "react-icons/ri";
-import axios from "axios";
+import api from "../api/axios";
 import { getUser } from "../redux/slices/UserSlice";
 
 function NewProductDetails() {
@@ -27,9 +27,8 @@ function NewProductDetails() {
 
     const getProduct = async () => {
       try {
-        const response = await axios.post("/api/cart/thisProduct", {
+        const response = await api.post("/cart/thisProduct", {
           product_id: id,
-          user_id: user.id,
         });
         setQuantity(response.data.quantity);
       } catch (error) {
@@ -45,7 +44,7 @@ function NewProductDetails() {
   const addCart = async () => {
     if (!user) return navigate("/kayıt");
     try {
-      const response = await axios.post("/api/cart/iord", { product_id: id, user_id: user?.id });
+      const response = await api.post("/cart/iord", { product_id: id});
       setQuantity(response.data.quantity);
     } catch (error) {
       console.error(error);
@@ -56,7 +55,7 @@ function NewProductDetails() {
     increase: boolean
   ) => {
     try {
-      axios.post("/api/cart/iord", { product_id: id, user_id: user?.id, increase });
+      api.post("/cart/iord", { product_id: id, increase });
       if (quantity < 1) {
         setQuantity(0)
       } else if (quantity >= 1) {

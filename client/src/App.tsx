@@ -10,50 +10,29 @@ import NotFound from "./Components/NotFound";
 import ProductDetails from "./pages/ProductDetails";
 import Chat from "./pages/Chat";
 import Cart from "./pages/Cart"
-import useIsOnline from "./hooks/useIsOnline";
 import { useEffect } from "react";
-import axios from "axios";
+import api from "./api/axios";
 import type { RootState } from "./redux/store";
 import { useSelector } from "react-redux";
 
 function App() {
-  let isOnline = useIsOnline();
   const { user } = useSelector((state: RootState) => state.user);
 
   useEffect(() => {
     if (!user?.id) return;
 
-    const setOnlineStatus = async (online: boolean) => {
-      await axios.post("/api/chat/setOnline", {
-        is_online: online,
-        last_seen: online ? null : new Date().toISOString(),
-        id: user.id,
-      });
+    const heartbeat = () => {
+      api.post("/chat/heartbeat").catch(() => {});
     };
 
-    // İlk yüklemede veya isOnline değiştiğinde
-    setOnlineStatus(isOnline);
+    heartbeat();
 
-    const handleBeforeUnload = () => {
-      const payload = {
-        is_online: false,
-        last_seen: new Date().toISOString(),
-        id: user.id,
-      };
-      const blob = new Blob([JSON.stringify(payload)], {
-        type: "application/json",
-      });
-      navigator.sendBeacon("/api/chat/setOnline", blob);
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    const interval = setInterval(heartbeat, 60_000);
 
     return () => {
-      // Cleanup: component unmount olduğunda offline yap
-      handleBeforeUnload();
-      window.removeEventListener("beforeunload", handleBeforeUnload);
+      clearInterval(interval);
     };
-  }, [isOnline, user?.id]);
+  }, [user?.id]);
 
   return (
     <div>

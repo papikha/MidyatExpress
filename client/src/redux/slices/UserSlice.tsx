@@ -1,13 +1,13 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import { supabase } from "../../../supabaseClient";
+import api from "../../api/axios";
 
 export interface User {
   id: string;
   user_name: string;
   email: string;
   avatar_url: string;
-  is_admin: boolean;
+  role: string;
 }
 
 export interface UserState {
@@ -26,22 +26,15 @@ export const getUser = createAsyncThunk<User>(
   "user/getUser",
   async (_, { rejectWithValue }) => {
     try {
-
-      const { data: authData, error: authError } = await supabase.auth.getUser();
-      if (authError) throw authError;
-
-      const userId = authData?.user?.id;
-      if (!userId) throw new Error("Kullanıcı bulunamadı");
-
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", userId)
-        .single();
-      if (error) throw error;
-      return data as User;
+      const { data } = await api.get<User>("/users/me");
+      return data;
     } catch (err: any) {
-      return rejectWithValue(err.message);
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Kullanıcı bilgileri alınamadı";
+
+      return rejectWithValue(message);
     }
   }
 );
@@ -53,21 +46,26 @@ export const userSlice = createSlice({
     clearUser: (state) => {
       state.user = null;
       state.error = null;
+      state.loading = false;
     },
   },
   extraReducers: (builder) => {
     builder
       .addCase(getUser.pending, (state) => {
         state.loading = true;
-      })
-      .addCase(getUser.fulfilled, (state, action: PayloadAction<User>) => {
-        state.user = action.payload;
         state.error = null;
-        state.loading = false;
       })
+      .addCase(
+        getUser.fulfilled,
+        (state, action: PayloadAction<User>) => {
+          state.user = action.payload;
+          state.loading = false;
+        }
+      )
       .addCase(getUser.rejected, (state, action) => {
         state.error = action.payload as string;
         state.loading = false;
+        state.user = null;
       });
   },
 });

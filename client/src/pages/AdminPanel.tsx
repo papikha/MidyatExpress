@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import { panelSchema } from "../schemas/Panelschema";
-import axios from "axios";
+import api from "../api/axios";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../redux/store";
 import { getUser } from "../redux/slices/UserSlice";
@@ -75,9 +75,7 @@ function AdminPanel() {
         formData.append("stock", values.stock);
         formData.append("description", values.description);
 
-        const res = await axios.post("/api/panel", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        const res = await api.post("/panel", formData);
 
         dispatch(
           setMessage({ message: res.data.message, messageColor: "#f2d73f" })
@@ -115,7 +113,7 @@ function AdminPanel() {
 
   if (isLoading) return <Loading />;
   if (!user) return <NotFound />;
-  if (!user.is_admin) return <NotFound />;
+  if (user.role != "admin") return <NotFound />;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-100 p-6">

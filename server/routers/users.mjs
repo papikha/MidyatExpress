@@ -53,4 +53,21 @@ router.post("/register", async (req, res) => {
   }
 });
 
+router.get("/me", async (req, res) =>{
+  try{
+    const user_id = req.user.id
+    if (!user_id) return res.status(401).json("Kullanıcı Yok")
+    
+    const {data: user, error} = await supabase.from("users")
+    .select()
+    .eq("id", user_id)
+    .single();
+
+    if (error) throw error
+    res.status(200).json(user)
+  }catch(error){
+    res.status(500).json("Kullanıcı Bilgileri Yanlış ve ya Çekilemedi")
+  }
+})
+
 export default router;

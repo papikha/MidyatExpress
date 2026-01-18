@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import axios from "axios";
+import { supabase } from "../../../supabaseClient";
 
 export interface Product {
   id: number;
@@ -26,13 +26,16 @@ const initialState: ProductsState = {
 export const getAllProducts = createAsyncThunk<Product[]>(
   "products",
   async (_, { rejectWithValue }) => {
-    try {
-      const response = await axios.get<Product[]>("/api/products");
-      return response.data;
-    } catch (err: any) {
-      console.error(err);
-      return rejectWithValue(err.response?.data?.error || "Veri çekilemedi");
+    const { data, error } = await supabase
+      .from("products")
+      .select("*");
+
+    if (error) {
+      console.error(error);
+      return rejectWithValue("Veri çekilemedi");
     }
+
+    return (data ?? []) as Product[];
   }
 );
 

@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "../api/axios";
 import { useEffect, useRef, useState } from "react";
 import { HiMenu } from "react-icons/hi";
 import type { AppDispatch, RootState } from "../redux/store";
@@ -12,6 +12,7 @@ import { tr } from "date-fns/locale";
 import { IoSend } from "react-icons/io5";
 import { TiArrowBack } from "react-icons/ti";
 import NotFound from "../Components/NotFound";
+import { supabase } from "../../supabaseClient";
 
 interface User {
   id: string;
@@ -54,22 +55,22 @@ function Chat() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (!user?.id) return;
+    let newSocket: Socket | null = null;
 
-    const newSocket = io("http://localhost:8000", {
-      transports: ["websocket"],
-    });
+    const connect = async () => {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token || !user?.id) return;
 
-    newSocket.on("connect", () => {
-      newSocket.emit("join", { userId: user.id });
-    });
+      newSocket = io("http://localhost:8000", {
+        transports: ["websocket"],
+        auth: { token },
+      });
 
-    setSocket(newSocket);
+      setSocket(newSocket);
 
-    const getUsers = async () => {
       try {
-        const response = await axios.post("/api/chat/users", { id: user.id });
-        console.log(response.data);
+        const response = await api.post("/chat/users");
         setUsers(response.data);
         setUsersWithRoom(response.data);
       } catch (err) {
@@ -77,10 +78,10 @@ function Chat() {
       }
     };
 
-    getUsers();
+    connect();
 
     return () => {
-      newSocket.disconnect();
+      if (newSocket) newSocket.disconnect();
     };
   }, [user]);
 
@@ -92,9 +93,7 @@ function Chat() {
     setTimeout(async () => {
       if (Date.now() - lastKeyPressTime.current >= 500) {
         try {
-          const response = await axios.get(
-            `/api/chat/search?user_name=${value}`
-          );
+          const response = await api.get(`/chat/search?user_name=${value}`);
           setUsers(response.data);
         } catch (err) {
           console.error(err);
@@ -109,9 +108,17 @@ function Chat() {
   };
 
   useEffect(() => {
-    socket?.on("receive_message", (data) => {
-      setMessages((prev: any) => [...prev, data]);
-    });
+    if (!socket) return;
+
+    const handler = (data: Messages) => {
+      setMessages((prev) => [...prev, data]);
+    };
+
+    socket.on("receive_message", handler);
+
+    return () => {
+      socket.off("receive_message", handler);
+    };
   }, [socket]);
 
   const sendMessage = async (e: any) => {
@@ -127,23 +134,21 @@ function Chat() {
     socket?.emit("send_message", {
       room: roomId,
       message,
-      sender_id: user?.id,
     });
 
-    await axios.post("/api/chat/sendMessage", {
+    await api.post("/chat/sendMessage", {
       room: roomId,
       message,
-      sender_id: user?.id,
     });
   };
 
   const getChats = async (room: string) => {
     setMessage("");
 
-    const response: any = await axios.post("/api/chat/getMessages", { room });
+    const response: any = await api.post("/chat/getMessages", { room });
 
     const sortedMessages = (response.data || []).sort(
-      (a: any, b: any) => a.id - b.id
+      (a: any, b: any) => a.id - b.id,
     );
 
     setMessages(sortedMessages);
@@ -192,10 +197,28 @@ function Chat() {
                     {u.user_name[0].toUpperCase()}
                   </div>
                 )}
-                <div className="flex flex-col overflow-hidden">
-                  <p className="font-medium text-gray-800 truncate">
-                    {u.user_name}
-                  </p>
+                <div className="flex flex-col w-full overflow-hidden">
+                  <div className="flex flex-row w-full justify-between">
+                    <p className="font-medium text-gray-800 truncate max-lg:text-sm">
+                      {u.user_name}
+                    </p>
+                    <p
+                      className={`${
+                        u.is_online
+                          ? "max-lg:text-sm font-semibold text-green-500"
+                          : "text-sm text-gray-500"
+                      }`}
+                    >
+                      {u?.is_online ? (
+                        <span className="relative flex size-3 mt-1 mr-1">
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
+                          <span className="relative inline-flex size-3 rounded-full bg-green-500"></span>
+                        </span>
+                      ) : (
+                        <span className="relative inline-flex size-3 rounded-full bg-gray-400 mr-1 mt-1"></span>
+                      )}
+                    </p>
+                  </div>
                   <p className="text-sm text-gray-500 truncate">
                     {u.last_message}
                   </p>
@@ -256,11 +279,11 @@ function Chat() {
                     {activeUser?.is_online
                       ? "Çevrimiçi"
                       : activeUser.last_seen
-                      ? `Son görülme: ${formatDistanceToNow(
-                          new Date(activeUser.last_seen),
-                          { addSuffix: true, locale: tr }
-                        )}`
-                      : "Bilinmiyor"}
+                        ? `Son görülme: ${formatDistanceToNow(
+                            new Date(activeUser.last_seen),
+                            { addSuffix: true, locale: tr },
+                          )}`
+                        : "Bilinmiyor"}
                   </p>
                 </div>
               </div>

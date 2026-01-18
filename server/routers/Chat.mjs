@@ -8,7 +8,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY);
 
 router.post("/users", async (req, res) => {
   try {
-    const id = req.body.id;
+    const id = req.user.id;
     const { data: rooms, error } = await supabase
       .from("rooms")
       .select()
@@ -17,7 +17,7 @@ router.post("/users", async (req, res) => {
     if (error) throw error;
 
     const otherUserIds = rooms.map((room) =>
-      room.user1_id === id ? room.user2_id : room.user1_id
+      room.user1_id === id ? room.user2_id : room.user1_id,
     );
     if (otherUserIds.length === 0) return res.json([]);
 
@@ -28,7 +28,7 @@ router.post("/users", async (req, res) => {
 
     const newUsersData = usersData.map((u) => {
       const room = rooms.find(
-        (room) => u.id === room.user1_id || u.id === room.user2_id
+        (room) => u.id === room.user1_id || u.id === room.user2_id,
       );
 
       return {
@@ -46,14 +46,18 @@ router.post("/users", async (req, res) => {
 
 router.post("/sendMessage", async (req, res) => {
   try {
-    const { room, message, sender_id } = req.body;
+    const { room, message } = req.body;
+    const sender_id = req.user.id;
 
     const ids = room.split("_");
     if (ids.length !== 2) {
-      return res.status(400).json({ message: "Invalid room format" });
+      return res.status(400).json({ message: "room formatı geçersiz" });
     }
 
     const [userA, userB] = ids;
+    if (sender_id !== userA && sender_id !== userB) {
+      return res.status(403).json({ message: "Yetkisiz oda" });
+    }
 
     const { error: chatError } = await supabase.from("chats").insert({
       room_id: room,
@@ -66,7 +70,7 @@ router.post("/sendMessage", async (req, res) => {
       .from("rooms")
       .select("id")
       .or(
-        `and(user1_id.eq.${userA},user2_id.eq.${userB}), and(user1_id.eq.${userB},user2_id.eq.${userA})`
+        `and(user1_id.eq.${userA},user2_id.eq.${userB}), and(user1_id.eq.${userB},user2_id.eq.${userA})`,
       )
       .maybeSingle();
 
@@ -91,7 +95,6 @@ router.post("/sendMessage", async (req, res) => {
 
     res.status(200).json({ success: true });
   } catch (error) {
-    console.error("send message error:", error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -103,6 +106,11 @@ router.post("/sendMessage", async (req, res) => {
 router.post("/getMessages", async (req, res) => {
   try {
     const { room } = req.body;
+    const ids = room.split("_");
+    if (!ids.includes(req.user.id)) {
+      return res.status(403).json({ message: "Yetkisiz" });
+    }
+
     const { data, error } = await supabase
       .from("chats")
       .select()
@@ -115,36 +123,6 @@ router.post("/getMessages", async (req, res) => {
   }
 });
 
-router.post("/setOnline", async (req, res) => {
-  const { is_online, last_seen, id } = req.body;
-
-  if (!id) {
-    return res.status(400).json({ error: "User ID is required" });
-  }
-
-  try {
-    let updateData = { is_online };
-
-    if (!is_online && last_seen) {
-      updateData.last_seen = last_seen;
-    }
-
-    const { data, error } = await supabase
-      .from("users")
-      .update(updateData)
-      .eq("id", id);
-
-    if (error) {
-      console.log("Supabase update error:", error);
-      return res.status(500).json({ error: error.message });
-    }
-    return res.json({ success: true, data });
-  } catch (err) {
-    console.error("Unexpected error:", err);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-});
-
 router.get("/search", async (req, res) => {
   const user_name = req.query.user_name;
   if (user_name.length < 3) return res.send();
@@ -152,12 +130,27 @@ router.get("/search", async (req, res) => {
     const { data: users, error } = await supabase
       .from("users")
       .select("user_name, avatar_url, id")
-      .ilike("user_name", `%${user_name}%`);
+      .ilike("user_name", `%${user_name}%`)
+      .limit(25);
     if (error) throw error;
     res.json(users);
   } catch (error) {
     return res.status(400).json({ error });
   }
+});
+
+router.post("/heartbeat", async (req, res) => {
+  if (!req.user?.id) return res.sendStatus(204);
+
+  await supabase
+    .from("users")
+    .update({
+      is_online: true,
+      last_seen: new Date().toISOString(),
+    })
+    .eq("id", req.user.id);
+
+  res.sendStatus(204);
 });
 
 export default router;

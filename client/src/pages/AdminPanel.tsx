@@ -19,7 +19,7 @@ function AdminPanel() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const { user, loading: isLoading } = useSelector(
-    (state: RootState) => state.user
+    (state: RootState) => state.user,
   );
   const { message } = useSelector((state: RootState) => state.message);
   const dispatch = useDispatch<AppDispatch>();
@@ -33,18 +33,37 @@ function AdminPanel() {
         setMessage({
           message: "Sadece PNG, JPEG, WEBP kabul edilir.",
           messageColor: "#f23f3f",
-        })
+        }),
       );
     if (selected.size > 5 * 1024 * 1024)
       return dispatch(
         setMessage({
           message: "5 mb üstü yüklenemez.",
           messageColor: "#f23f3f",
-        })
+        }),
       );
 
     setFile(selected);
     setPreview(URL.createObjectURL(selected));
+  };
+
+  const fixFileName = (fileName: string) => {
+    const map: any = {
+      ç: "c",
+      Ç: "C",
+      ğ: "g",
+      Ğ: "G",
+      ı: "i",
+      İ: "I",
+      ö: "o",
+      Ö: "O",
+      ş: "s",
+      Ş: "S",
+      ü: "u",
+      Ü: "U",
+    };
+
+    return fileName.replaceAll(/[çÇğĞıİöÖşŞüÜ]/g, (char) => map[char]);
   };
 
   const formik = useFormik({
@@ -57,18 +76,28 @@ function AdminPanel() {
     },
     validationSchema: panelSchema,
     onSubmit: async (values, { resetForm }) => {
-      if (!file)
+      if (!file) {
         return dispatch(
           setMessage({
             message: "Lütfen ürün görseli yükleyin.",
             messageColor: "#f23f3f",
-          })
+          }),
         );
+      }
+
+      const fixedName = fixFileName(file.name);
+
+      const fixedFile = new File(
+        [file], // içerik
+        fixedName, // yeni isim
+        { type: file.type },
+      );
+
       try {
         setLoading(true);
 
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", fixedFile);
         formData.append("name", values.name);
         formData.append("price", values.price);
         formData.append("new_price", values.new_price || "");
@@ -78,7 +107,7 @@ function AdminPanel() {
         const res = await api.post("/panel", formData);
 
         dispatch(
-          setMessage({ message: res.data.message, messageColor: "#f2d73f" })
+          setMessage({ message: res.data.message, messageColor: "#f2d73f" }),
         );
         resetForm();
         setFile(null);
@@ -92,14 +121,14 @@ function AdminPanel() {
             setMessage({
               message: `Hata: Zaten Bu isimde Başka Bir Ürün Var`,
               messageColor: "#f23f3f",
-            })
+            }),
           );
         else
           dispatch(
             setMessage({
               message: `Hata:  ${err.response?.data?.error || err.message}`,
               messageColor: "#f23f3f",
-            })
+            }),
           );
       } finally {
         setLoading(false);
@@ -264,7 +293,7 @@ function AdminPanel() {
       </div>
       <MessageButton where="bottom" />
       <div
-        onClick={() => navigate("/")}
+        onClick={() => navigate(-1)}
         className="md:hidden fixed z-1000 flex right-5 bottom-5 items-center justify-center w-11 h-11 rounded-full bg-white/80 backdrop-blur-md shadow-lg cursor-pointer hover:scale-110 hover:shadow-xl active:scale-95 transition-all duration-300"
       >
         <TiArrowBack className="w-6 h-6 text-gray-700" />

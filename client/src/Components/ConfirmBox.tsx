@@ -8,9 +8,15 @@ function ConfirmBox({ confirmMessage, onConfirm, onCancel }: ConfirmBoxProps) {
   if (!confirmMessage) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 md:p-8 flex flex-col gap-6 transform transition-transform duration-300 hover:scale-105">
-        
+    <div className="fixed inset-0 bg-black/40 flex items-start justify-center z-50 pt-20 animate-fade-in">
+      <div
+        className="
+          bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 md:p-8
+          flex flex-col gap-6
+          transform transition-all duration-300
+          animate-slide-down
+        "
+      >
         <div className="text-center text-lg font-semibold text-gray-800">
           {confirmMessage}
         </div>

@@ -394,7 +394,7 @@ function Chat() {
         )}
       </div>
       <div
-        onClick={() => navigate("/")}
+        onClick={() => navigate(-1)}
         className={`${
           !showChat || "hidden"
         } md:hidden fixed z-1000 flex right-2 bottom-20 items-center justify-center w-11 h-11 rounded-full bg-white/80 backdrop-blur-md shadow-lg cursor-pointer hover:scale-110 hover:shadow-xl active:scale-95 transition-all duration-300`}

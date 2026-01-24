@@ -20,6 +20,10 @@ function Confirm() {
           Lütfen mail kutunu (ve spam klasörünü) kontrol et.  
           Emailini onayladıktan sonra giriş yapabilirsin.
         </p>
+        <p className="text-sm text-red-600 mb-6">
+          Eğer 30 dakika içinde onaylama işlemi yapılmazsa
+                            Hesap Silinir
+        </p>
 
         <button
           onClick={() => navigate("/Giriş")}

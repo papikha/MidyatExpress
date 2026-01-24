@@ -11,10 +11,9 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY);
 
 router.post("/", upload.single("file"), async (req, res) => {
   const id = req.user.id;
-  const role = req.user.role
-  console.log(req.user)
-  if (!id || role !== "admin"){
-    return res.status(403).json("Yetkisiz erişim")
+  const role = req.user.role;
+  if (!id || role !== "admin") {
+    return res.status(403).json("Yetkisiz erişim");
   }
   try {
     const { name, price, stock, description, new_price } = req.body;
@@ -38,7 +37,7 @@ router.post("/", upload.single("file"), async (req, res) => {
     let imgUrl = null;
 
     if (req.file) {
-      const key = `${Date.now()}_${req.file.originalname}`;
+      const key = `${Date.now()}_${req.file.filename}`;
       const { error: uploadError } = await supabase.storage
         .from("product_images")
         .upload(key, req.file.buffer, { contentType: req.file.mimetype });
@@ -59,7 +58,6 @@ router.post("/", upload.single("file"), async (req, res) => {
 
     res.json({ message: "Ürün başarıyla kaydedildi!" });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });

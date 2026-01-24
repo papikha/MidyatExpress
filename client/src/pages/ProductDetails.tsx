@@ -76,7 +76,7 @@ function NewProductDetails() {
   return (
     <div className="min-h-screen w-screen bg-gray-50 flex flex-col md:flex-row items-center md:items-start p-6 md:p-15 md:pt-6 pb-40">
       <div
-        onClick={() => navigate("/")}
+        onClick={() => navigate(-1)}
         className="md:hidden fixed z-1000 flex left-5 items-center justify-center w-11 h-11 rounded-full bg-white/80 backdrop-blur-md shadow-lg cursor-pointer hover:scale-110 hover:shadow-xl active:scale-95 transition-all duration-300"
       >
         <TiArrowBack className="w-6 h-6 text-gray-700" />

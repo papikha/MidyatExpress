@@ -8,6 +8,11 @@ export interface User {
   email: string;
   avatar_url: string;
   role: string;
+  listing_quota: number;
+  phone: string;
+  real_name: string;
+  real_surname: string;
+  phone_confirmed_at: string;
 }
 
 export interface UserState {

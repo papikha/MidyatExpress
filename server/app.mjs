@@ -27,11 +27,12 @@ const io = new Server(server, {
 });
 
 // middlewares
+app.set("trust proxy", 1);
 app.use(express.json());
 app.use(helmet());
 app.use("/api/users/register", rateLimiter);
 app.use("/api/users/login", rateLimiter);
-app.use("/api/users/me/password", rateLimiter);
+app.use("/api/users/me/changeUserName", rateLimiter);
 app.use(getUserId)
 io.use(socketAuth);
 

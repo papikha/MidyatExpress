@@ -20,6 +20,7 @@ import MessageButton from "../Components/MessageButton";
 import { TiArrowBack } from "react-icons/ti";
 import api from "../api/axios";
 import { CgCheck, CgInsertAfterO } from "react-icons/cg";
+import Loading from "../Components/Loading";
 
 const passwordSchema = Yup.object({
   password: Yup.string()
@@ -44,16 +45,16 @@ interface Listing {
 
 function Profilim() {
   const dispatch = useDispatch<AppDispatch>();
-  const { user } = useSelector((state: RootState) => state.user);
+  const { user, loading } = useSelector((state: RootState) => state.user);
   const [confirmMessage, setConfirmMessage] = useState<string | null>(null);
   const [onConfirm, setOnConfirm] = useState<(() => void) | null>(null);
   const { message } = useSelector((state: RootState) => state.message);
   const navigate = useNavigate();
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [openPhoneModal, setPhoneModal] = useState(false);
-  const [otp, setOtp] = useState("");
+  const [code, setCode] = useState("");
   const [timeLeft, setTimeLeft] = useState(60);
-  const [loading, setLoading] = useState(false);
+  const [loadingPassword, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [listings, setListings] = useState<Listing[]>();
   const [userName, setUserName] = useState<string>("");
@@ -66,14 +67,23 @@ function Profilim() {
 
   useEffect(() => {
     dispatch(getUser());
+    if (user?.user_name) {
+      setUserPlaceHolderName(user.user_name);
+    }
   }, [dispatch]);
+  useEffect(() => {
+    if (user?.user_name) {
+      setUserPlaceHolderName(user.user_name);
+    }
+  }, [user]);
+  
 
   useEffect(() => {
     if (!openPhoneModal) return;
 
     if (timeLeft <= 0) {
       setPhoneModal(false);
-      setOtp("");
+      setCode("");
       setTimeLeft(60);
 
       dispatch(
@@ -91,6 +101,8 @@ function Profilim() {
 
     return () => clearTimeout(timer);
   }, [timeLeft, openPhoneModal]);
+
+  
 
   //* Çıkış Yapma
   const handleLogout = () => {
@@ -185,12 +197,6 @@ function Profilim() {
 
     getListings();
   }, [user?.id]);
-
-  //*İlan ekleme
-  const handleAddListing = () => {
-    console.log("sıhwsdıu");
-  };
-
   //*ilan expire date i alma
   const getRemainingTime = (createdAt: string) => {
     const end = new Date(createdAt).getTime() + 30 * 24 * 60 * 60 * 1000;
@@ -318,74 +324,90 @@ function Profilim() {
 
   //*telefon ekleme
   const handleSetPhone = async () => {
-    try {
-      if (!phone.startsWith("5") || phone.length !== 10) {
-        return dispatch(
-          setMessage({
-            message: "Geçerli bir telefon numarası giriniz",
-            messageColor: "#f23f3f",
-          }),
-        );
-      }
-
-      const { error } = await supabase.auth.updateUser({
-        phone: `+90${phone}`,
-      });
-
-      if (error) {
-        return dispatch(
-          setMessage({
-            message: error.message,
-            messageColor: "#f23f3f",
-          }),
-        );
-      }
-    } catch (error) {
-      dispatch(
-        setMessage({
-          message: "Telefon eklenirken bir hata oluştu",
-          messageColor: "#f23f3f",
-        }),
-      );
-    }
-
-    dispatch(
-      setMessage({
-        message: "Doğrulama kodu SMS ile gönderildi",
-        messageColor: "#2bd92b",
-      }),
-    );
-  };
-
-  //*telefon doğrulama
-  const handleVerifyPhone = async () => {
-    if (otp.length !== 6) return;
-
-    const { error } = await supabase.auth.verifyOtp({
-      phone: `+90${phone}`,
-      token: otp,
-      type: "sms",
-    });
-
-    if (error) {
+    if (!phone.startsWith("5") || phone.length !== 10) {
       return dispatch(
         setMessage({
-          message: "Kod yanlış veya süresi dolmuş",
+          message: "Geçerli bir telefon numarası giriniz",
           messageColor: "#f23f3f",
         }),
       );
     }
+    const { data } = await api.post("/phone/set_phone", { phone });
 
+    if (data.error) {
+      return dispatch(
+        setMessage({
+          message: data.error,
+          messageColor: "#f23f3f",
+        }),
+      );
+    }
+    handleSendCode();
+  };
+
+  //*kod gönderme
+  const handleSendCode = async () => {
+    try {
+      const { data } = await api.get("/phone/send_code");
+      console.log(data);
+
+      if (data.error) {
+        return dispatch(
+          setMessage({
+            message: data.error,
+            messageColor: "#f23f3f",
+          }),
+        );
+      }
+
+      dispatch(
+        setMessage({
+          message: "Kod gönderildi",
+          messageColor: "#2bd92b",
+        }),
+      );
+
+      setPhoneModal(true);
+      setCode("");
+      setTimeLeft(300);
+    } catch (error) {
+      return dispatch(
+        setMessage({
+          message: "Bir hata Oluştu",
+          messageColor: "#f23f3f",
+        }),
+      );
+    }
+  };
+
+  //*kodu değrulama
+  const handleVerifyCode = async () => {
+    if (!code || code.length !== 6)
+      return dispatch(
+        setMessage({
+          message: "Lütfen 6 haneli kod giriniz",
+          messageColor: "#f23f3f",
+        }),
+      );
+    const { data } = await api.post("/phone/verify_phone", { code });
+    if (data.error) {
+      return dispatch(
+        setMessage({
+          message: "Telefon numarası doğrulanamadı",
+          messageColor: "#f23f3f",
+        }),
+      );
+    }
+    dispatch(getUser());
     dispatch(
       setMessage({
         message: "Telefon numarası doğrulandı",
         messageColor: "#2bd92b",
       }),
     );
-
+    setCode("");
     setPhoneModal(false);
-    setOtp("");
-    setTimeLeft(60);
+    setTimeLeft(0);
   };
 
   const formik = useFormik<PassValues>({
@@ -437,6 +459,7 @@ function Profilim() {
 
   const { values, errors, touched, handleChange, handleSubmit } = formik;
 
+  if (loading && !user) return <Loading/>
   if (!user) return <NotFound />;
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-indigo-200 via-sky-200 to-pink-200 flex justify-center items-start p-4 sm:p-6">
@@ -579,14 +602,10 @@ function Profilim() {
 
                   {user.phone ? (
                     <div className="flex items-center gap-2">
-                      <p className="text-gray-800 font-medium">{user.phone}</p>
+                      <p className="text-gray-800 font-medium">{`+90 ${user.phone.slice(2)}`}</p>
 
-                      {user.phone_confirmed_at ? (
+                      {user.is_phone_confirmed && (
                         <CgCheck className="text-green-500" size={18} />
-                      ) : (
-                        <span className="text-xs text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-full">
-                          Doğrulanmadı
-                        </span>
                       )}
                     </div>
                   ) : (
@@ -598,14 +617,11 @@ function Profilim() {
                   )}
                 </div>
 
-                {/* BUTTON */}
-                {user.phone && !user.phone_confirmed_at && (
+                {/* onaylama butonu */}
+                {user.phone && !user.is_phone_confirmed && (
                   <button
-                    onClick={() => {
-                      setPhoneModal(true);
-                      setTimeLeft(60);
-                    }}
-                    className="ml-3 flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs shadow text-gray-600 hover:text-gray-900"
+                    onClick={handleSendCode}
+                    className="ml-3 flex items-center gap-1 rounded-full bg-yellow-200 px-3 py-1 text-xs shadow text-gray-600 hover:text-gray-900"
                   >
                     <MdVerified size={14} />
                     Onayla
@@ -622,26 +638,27 @@ function Profilim() {
                 )}
               </div>
 
+              {/* onaylama modalı */}
               {openPhoneModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                <div className="fixed top-10 inset-0 z-50 flex items-center justify-center bg-black/40">
                   <div className="w-80 rounded-xl bg-white p-5 shadow-lg">
                     <h3 className="mb-3 text-sm font-medium text-gray-700">
                       6 haneli doğrulama kodunu giriniz
                     </h3>
 
                     <input
-                      value={otp}
+                      value={code}
                       onChange={(e) => {
                         if (/^\d*$/.test(e.target.value))
-                          setOtp(e.target.value.slice(0, 6));
+                          setCode(e.target.value.slice(0, 6));
                       }}
                       placeholder="______"
                       className="mb-3 w-full rounded border px-3 py-2 text-center tracking-widest outline-none"
                     />
 
                     <button
-                      onClick={handleVerifyPhone}
-                      disabled={otp.length !== 6}
+                      onClick={handleVerifyCode}
+                      disabled={code.length !== 6}
                       className="w-full rounded bg-black py-2 text-sm text-white disabled:opacity-40"
                     >
                       Onayla
@@ -684,7 +701,7 @@ function Profilim() {
           </button>
 
           <button
-            onClick={handleAddListing}
+            onClick={() => navigate("/ilanekle")}
             className="relative flex items-center justify-between bg-red-500 text-white py-4 rounded-2xl shadow-lg hover:scale-[1.03] hover:bg-red-600 transition"
           >
             <div className="flex items-center gap-2 ml-5">
@@ -810,10 +827,10 @@ function Profilim() {
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loadingPassword}
                   className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50"
                 >
-                  {loading ? "Kaydediliyor..." : "Kaydet"}
+                  {loadingPassword ? "Kaydediliyor..." : "Kaydet"}
                 </button>
               </div>
             </div>

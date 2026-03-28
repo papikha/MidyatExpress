@@ -12,7 +12,7 @@ export interface User {
   phone: string;
   real_name: string;
   real_surname: string;
-  phone_confirmed_at: string;
+  is_phone_confirmed: string;
 }
 
 export interface UserState {

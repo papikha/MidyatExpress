@@ -6,6 +6,8 @@ import PanelRouter from "./routers/Panel.mjs";
 import ProfileRouter from "./routers/Profile.mjs";
 import ChatRouter from "./routers/Chat.mjs";
 import CartRouter from "./routers/Cart.mjs";
+import PhoneRouter from "./routers/Phone.mjs"
+import ListingRouter from "./routers/Listing.mjs"
 import { Server } from "socket.io";
 import { createServer } from "http";
 import rateLimiter from "./middleware/rateLimiter.mjs";
@@ -37,11 +39,13 @@ app.use(getUserId)
 io.use(socketAuth);
 
 // routers
+app.use("/api/phone", rateLimiter, PhoneRouter)
 app.use("/api/users", UsersRouter);
 app.use("/api/panel", PanelRouter);
-app.use("/api/profile", ProfileRouter);
+app.use("/api/profile", ProfileRouter, rateLimiter);
 app.use("/api/chat", ChatRouter);
 app.use("/api/cart", CartRouter);
+app.use("/api/listings", ListingRouter);
 
 const port = process.env.PORT || 8000;
 

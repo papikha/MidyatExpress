@@ -10,11 +10,13 @@ import NotFound from "./Components/NotFound";
 import ProductDetails from "./pages/ProductDetails";
 import Chat from "./pages/Chat";
 import Cart from "./pages/Cart";
+import AddListing from "./Components/AddListing"
 import { useEffect } from "react";
 import api from "./api/axios";
 import type { RootState } from "./redux/store";
 import { useSelector } from "react-redux";
 import ListingDetails from "./pages/ListingDetails";
+import Listings from "./pages/Listings";
 
 function App() {
   const { user } = useSelector((state: RootState) => state.user);
@@ -49,6 +51,8 @@ function App() {
         <Route path="/Sohbetlerim" element={<Chat />} />
         <Route path="/Sepetim" element={<Cart />} />
         <Route path="/ilan/:id" element={<ListingDetails />} />
+        <Route path="/ilanEkle" element={<AddListing/>} />
+        <Route path="/ilanlar" element={<Listings/>} />
       </Routes>
     </div>
   );

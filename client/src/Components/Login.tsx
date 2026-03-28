@@ -34,7 +34,7 @@ function Login() {
     setLoadingText("Giriş Yapılıyor...");
     setErrorMessage("");
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email: values.email,
       password: values.password,
     });

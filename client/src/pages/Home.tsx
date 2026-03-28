@@ -100,14 +100,19 @@ function Home() {
 
       {/* Main */}
       <main className="flex flex-col items-center px-4 sm:px-8 py-12 text-center z-10 relative">
-        <section className="mb-14 max-w-2xl">
-          <h2 className="text-4xl sm:text-5xl font-extrabold text-indigo-800 drop-shadow-sm mb-4 animate-fade-in">
-            MidyatExpress’e Hoş Geldin
-          </h2>
-          <p className="text-md sm:text-lg text-indigo-700/80 leading-relaxed">
-            Her kategoride aradığın hizmet burada. Keşfetmeye başla!
-          </p>
-        </section>
+        <div className="justify-center items-center w-[80%] flex flex-col flex-row gap-4 sm:gap-8 mb-10">
+          <div className="w-full sm:w-auto">
+            <button onClick={() => navigate("/İlanlar")} className="h-15 w-full px-4 py-2 sm:px-6 sm:py-3 rounded-2xl bg-red-500 text-white text-sm sm:text-base font-semibold shadow-md hover:bg-red-600 hover:shadow-lg transition-all duration-300">
+              İlanlara Göz At
+            </button>
+          </div>
+
+          <div className="w-full sm:w-auto">
+            <button className="h-15 w-full px-4 py-2 sm:px-6 sm:py-3 rounded-2xl bg-blue-500 text-white text-sm sm:text-base font-semibold shadow-md hover:bg-blue-600 hover:shadow-lg transition-all duration-300">
+              Esnaflara Göz At
+            </button>
+          </div>
+        </div>
 
         {/* Fırsatlar */}
         <section className="w-full max-w-7xl mb-16">

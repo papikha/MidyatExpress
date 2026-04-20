@@ -14,6 +14,7 @@ import rateLimiter from "./middleware/rateLimiter.mjs";
 import { getUserId } from "./middleware/getUserId.mjs";
 import { socketAuth } from "./middleware/socketAuth.mjs";
 import { createClient } from "@supabase/supabase-js";
+import "./cron_jobs/deleteExpiredListings.mjs"
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;

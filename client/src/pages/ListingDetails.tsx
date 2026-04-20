@@ -4,6 +4,7 @@ import { supabase } from "../../supabaseClient";
 import { FaQuestion, FaRegEye } from "react-icons/fa";
 import api from "../api/axios";
 import { TiArrowBack } from "react-icons/ti";
+import Loading from "../Components/Loading";
 
 interface Listing {
   id: number;
@@ -13,6 +14,8 @@ interface Listing {
   created_at: string;
   image_paths: Record<string, string> | null;
   seen: number;
+  category: string;
+  q_a: Record<string, string> | null;
 }
 
 interface Seller {
@@ -33,6 +36,19 @@ export default function ListingDetail() {
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [seller, setSeller] = useState<Seller>();
+
+  const categories: Record<string, string> = {
+    real_estate: "emlak",
+    vehicles: "vasıta",
+    spare_parts: "yedek parçalar",
+    "second-hand": "ikinci-el",
+    industry: "sanayi",
+    job_listings: "iş ilanları",
+    animals: "hayvanlar",
+    hobbies_entertainment: "hobi & eğlence",
+    fashion: "moda",
+    home_living: "ev & yaşam",
+  };
 
   // expire 30 gün
   const getRemainingTime = (createdAt: string): string => {
@@ -68,7 +84,7 @@ export default function ListingDetail() {
     const hour = Math.floor(diff / (60 * 60 * 1000));
     if (hour >= 1) return `${hour} saat`;
 
-    return "Az önce";
+    return "Az Önce";
   };
 
   useEffect(() => {
@@ -83,6 +99,7 @@ export default function ListingDetail() {
         .select("*")
         .eq("id", Number(id))
         .single();
+      setListing(listing);
 
       if (listingError || !listing) {
         navigate("/");
@@ -94,20 +111,16 @@ export default function ListingDetail() {
       });
       if (!sellerData.real_name) return;
       setSeller(sellerData);
+      console.log(sellerData)
 
-      setListing(listing);
       setLoading(false);
+      await api.patch(`/listings/increaseseen/${listing?.id}`);
     };
-
     fetchListing();
   }, [id, navigate]);
 
   if (loading || !listing) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
-        Yükleniyor...
-      </div>
-    );
+    return <Loading />;
   }
 
   const images: string[] = listing.image_paths
@@ -154,18 +167,23 @@ export default function ListingDetail() {
           </div>
 
           {/* ilan yazıları */}
-          <div className="p-5 space-y-4">
+          <div className="relative p-5 space-y-4">
             <div className="flex w-full justify-between">
               <h1 className="text-xl font-bold text-gray-900">
                 {listing.listing_name}
               </h1>
-              <div className="flex flex-col items-center justify-center opacity-[0.4] ">
-                <FaRegEye />
-                <p className="text-sm -mt-1">{listing.seen}</p>
+              <div className="flex flex-row gap-5 max-sm:absolute max-sm:bottom-2 max-sm:right-4">
+                <span className="text-[11px] text-blue-600 font-medium">
+                  {categories[listing.category]}
+                </span>
+                <div className="flex flex-col items-center justify-center opacity-[0.4] ">
+                  <FaRegEye />
+                  <p className="text-sm -mt-1">{listing.seen}</p>
+                </div>
               </div>
             </div>
 
-            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap max-sm:mb-8">
               {listing.listing_description}
             </p>
           </div>
@@ -202,7 +220,7 @@ export default function ListingDetail() {
 
             <div className="bg-gray-50 rounded-xl py-3">
               <p className="text-sm font-semibold text-gray-800">
-                {seller && getTime(seller?.created_at)}
+                {seller?.created_at && getTime(seller?.created_at)}
               </p>
               <p className="text-[11px] text-gray-400">Üyelik</p>
             </div>
@@ -221,7 +239,7 @@ export default function ListingDetail() {
           <div className="text-xs text-green-500 text-center">
             Telefon numarası ile doğrulanmış
             <br />
-            Son aktif: {getTime(seller?.last_seen)}
+            Son aktif: {seller?.is_online ? "Aktif" : getTime(seller?.last_seen)}
           </div>
         </div>
 
@@ -231,27 +249,21 @@ export default function ListingDetail() {
 
           {/* SORULAR */}
           <div className="space-y-4 mb-6">
-            <div className="bg-gray-50 rounded-xl p-3 truncate">
-              <p className="flex flex-row items-center text-sm text-gray-800">
-                <FaQuestion className="max-w-6 max-h-6 mr-1 -mt-1 text-red-500" />{" "}
-                Eve Teslim Var mı?
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                Evet, eve teslim bulunuyor biza yazıp adresinizi verirseniz
-                teslim edebilirim.
-              </p>
-            </div>
-
-            <div className="bg-gray-50 rounded-xl p-3 overflow-hidden ">
-              <p className="flex flex-row items-center text-sm text-gray-800">
-                <FaQuestion className="max-w-6 max-h-6 mr-1 -mt-1 text-red-500" />{" "}
-                <span>
-                  İlk sahibi misiniz yoksa sizde mi 2. el aldınız j jjjjjjjjjjj
-                  jjjjjjjjjjjjj
-                </span>
-              </p>
-              <p className="text-xs text-gray-500 mt-1">Evet, ilk sahibiyim.</p>
-            </div>
+            {listing.q_a &&
+              Object.values(listing.q_a).map((q_a) => (
+                <div
+                  key={Object.values(q_a)[1]}
+                  className="bg-gray-50 rounded-xl p-3 overflow-hidden "
+                >
+                  <p className="flex flex-row items-center text-sm text-gray-800">
+                    <FaQuestion className="w-6 mr-1 -mt-1 text-red-500" />{" "}
+                    <span>{Object.values(q_a)[1]}</span>
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {Object.values(q_a)[0]}
+                  </p>
+                </div>
+              ))}
           </div>
         </div>
       </div>

@@ -102,7 +102,7 @@ function Home() {
       <main className="flex flex-col items-center px-4 sm:px-8 py-12 text-center z-10 relative">
         <div className="justify-center items-center w-[80%] flex flex-col flex-row gap-4 sm:gap-8 mb-10">
           <div className="w-full sm:w-auto">
-            <button onClick={() => navigate("/İlanlar")} className="h-15 w-full px-4 py-2 sm:px-6 sm:py-3 rounded-2xl bg-red-500 text-white text-sm sm:text-base font-semibold shadow-md hover:bg-red-600 hover:shadow-lg transition-all duration-300">
+            <button onClick={() => navigate("/ilanlar")} className="h-15 w-full px-4 py-2 sm:px-6 sm:py-3 rounded-2xl bg-red-500 text-white text-sm sm:text-base font-semibold shadow-md hover:bg-red-600 hover:shadow-lg transition-all duration-300">
               İlanlara Göz At
             </button>
           </div>

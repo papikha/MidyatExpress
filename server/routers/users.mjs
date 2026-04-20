@@ -151,7 +151,7 @@ router.post("/listing", async (req, res) => {
   const { data: sellerData, error: sellerError } = await supabase
     .from("users")
     .select(
-      "user_name, real_name, real_surname, avatar_url, last_seen, total_listings",
+      "user_name, real_name, real_surname, avatar_url, last_seen, total_listings, is_online",
     )
     .eq("id", listingData.seller_id)
     .single();

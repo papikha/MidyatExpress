@@ -14,4 +14,6 @@ export const listingYup = yup.object().shape({
     .max(500, "En fazla 500 karakter olmalı"),
 
   images: yup.array().max(5, "En fazla 5 resim ekleyebilirsiniz"),
+
+  category: yup.string().required("ilan kategorisi gerekli"),
 });

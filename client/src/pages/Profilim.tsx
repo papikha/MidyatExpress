@@ -6,7 +6,7 @@ import { clearUser, getUser } from "../redux/slices/UserSlice";
 import { supabase } from "../../supabaseClient";
 import { PiUploadSimpleBold } from "react-icons/pi";
 import { FaUserCircle, FaShoppingCart, FaUserLock } from "react-icons/fa";
-import { MdEdit, MdLogout, MdNoAccounts, MdVerified } from "react-icons/md";
+import { MdLogout, MdNoAccounts, MdVerified } from "react-icons/md";
 import { IoIosRemoveCircle } from "react-icons/io";
 import { RiAdminFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
@@ -76,7 +76,6 @@ function Profilim() {
       setUserPlaceHolderName(user.user_name);
     }
   }, [user]);
-  
 
   useEffect(() => {
     if (!openPhoneModal) return;
@@ -101,8 +100,6 @@ function Profilim() {
 
     return () => clearTimeout(timer);
   }, [timeLeft, openPhoneModal]);
-
-  
 
   //* Çıkış Yapma
   const handleLogout = () => {
@@ -191,7 +188,9 @@ function Profilim() {
       const { data } = await supabase
         .from("listings")
         .select()
-        .eq("seller_id", user?.id);
+        .eq("seller_id", user?.id)
+        .order("listing_queue", { ascending: false }) // büyükten küçüğe
+        .order("created_at", { ascending: true }); // küçükten büyüğe
       setListings(data ?? []);
     };
 
@@ -459,7 +458,7 @@ function Profilim() {
 
   const { values, errors, touched, handleChange, handleSubmit } = formik;
 
-  if (loading && !user) return <Loading/>
+  if (loading && !user) return <Loading />;
   if (!user) return <NotFound />;
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-indigo-200 via-sky-200 to-pink-200 flex justify-center items-start p-4 sm:p-6">
@@ -751,7 +750,6 @@ function Profilim() {
                       {cover ? (
                         <img
                           src={cover}
-                          alt={listing.listing_name}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -763,13 +761,6 @@ function Profilim() {
                       <div className="absolute bottom-2 right-2 bg-yellow-500 text-white text-sm font-bold px-3 py-1 rounded-full shadow whitespace-nowrap">
                         {listing.listing_price} ₺
                       </div>
-
-                      <button
-                        onClick={(e) => e.stopPropagation()}
-                        className="absolute top-2 right-2 bg-white/80 backdrop-blur rounded-full p-2 text-gray-600 hover:text-gray-900"
-                      >
-                        <MdEdit size={16} />
-                      </button>
                     </div>
 
                     <div className="p-4 flex flex-col gap-2 flex-1">
@@ -849,7 +840,7 @@ function Profilim() {
           />
         )}
       </div>
-      {user?.id ? <MessageButton where="bottom" /> : ""}
+      {user?.id && <MessageButton where="bottom" />}
     </div>
   );
 }

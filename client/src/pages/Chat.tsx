@@ -156,11 +156,11 @@ function Chat() {
 
   if (!user) return <NotFound />;
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-[100dvh] bg-gray-100 overflow-hidden">
       <div
         className={`${
           showChat ? "hidden" : "flex"
-        } sm:flex flex-col w-full sm:w-1/4 bg-white border-r border-gray-200 shadow-sm`}
+        } sm:flex flex-col w-full sm:w-1/3 lg:w-1/4 bg-white border-r border-gray-200 shadow-sm`}
       >
         <div className="p-4 border-b border-gray-200">
           <input
@@ -238,7 +238,7 @@ function Chat() {
         )}
       </div>
 
-      <div className="flex-1 flex flex-col h-screen">
+      <div className="flex-1 flex flex-col min-h-0 min-w-0">
         {activeUser ? (
           <>
             <div
@@ -272,7 +272,7 @@ function Chat() {
                   <p
                     className={`${
                       activeUser.is_online
-                        ? "text-md font-semibold text-green-500"
+                        ? "text-sm font-semibold text-green-500"
                         : "text-sm text-gray-500"
                     }`}
                   >
@@ -323,7 +323,7 @@ function Chat() {
                     </div>
                   )}
                   <div
-                    className={`relative px-4 py-2 rounded-2xl shadow-sm max-w-[75%] sm:max-w-xs ${
+                    className={`relative px-4 py-2 rounded-2xl shadow-sm max-w-[75%] sm:max-w-[60%] ${
                       msg.sender_id === user?.id
                         ? "bg-blue-500 text-white rounded-br-md"
                         : "bg-white text-gray-800 rounded-bl-md"

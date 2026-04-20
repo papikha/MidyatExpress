@@ -23,20 +23,16 @@ const initialState: ProductsState = {
   error: null,
 };
 
-export const getAllProducts = createAsyncThunk<Product[]>(
-  "products",
-  async (_, { rejectWithValue }) => {
-    const { data, error } = await supabase
-      .from("products")
-      .select("*");
+export const getAllProducts = createAsyncThunk<Product[]>("products", async (_, thunkAPI) => {            // _ arg oluyor dispatchte ver, gönderilirse diye
+    const { data, error } = await supabase.from("products").select("*");
 
     if (error) {
       console.error(error);
-      return rejectWithValue("Veri çekilemedi");
+      return thunkAPI.rejectWithValue("Veri çekilemedi");
     }
 
     return (data ?? []) as Product[];
-  }
+  },
 );
 
 export const productSlice = createSlice({
@@ -49,7 +45,7 @@ export const productSlice = createSlice({
         getAllProducts.fulfilled,
         (state, action: PayloadAction<Product[]>) => {
           state.products = action.payload;
-        }
+        },
       )
       .addCase(getAllProducts.rejected, (state, action) => {
         state.error = action.payload as string;

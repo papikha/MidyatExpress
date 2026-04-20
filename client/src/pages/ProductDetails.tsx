@@ -138,7 +138,7 @@ function NewProductDetails() {
         )}
         {/*arttır azalt*/}
         {quantity > 0 && (
-          <div className="md:-ml-25 self-center mt-2 flex items-center">
+          <div className="md:-ml-10 self-center mt-2 flex items-center">
             <button onClick={() => increaseOrDecrease(false)} className="h-9 w-9 rounded-full border border-gray-200 hover:bg-gray-100 cursor-pointer">
               -
             </button>

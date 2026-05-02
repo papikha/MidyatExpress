@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
-import { listingYup } from "../schemas/ListingSchema";
+import { tradesmanYup } from "../schemas/TradesmanSchema";
 import api from "../api/axios";
 import { setMessage } from "../redux/slices/MessageSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,15 +9,17 @@ import { useNavigate } from "react-router-dom";
 import MessageBox from "./MessageBox";
 import type { RootState } from "../redux/store";
 
-interface Q_as {
-  q: string;
-  a: string;
+interface Job_for_prices {
+  job: string;
+  price: number;
 }
 
-const ListingCreate: React.FC = () => {
+const BecomeTradesman: React.FC = () => {
   const [images, setImages] = useState<(File | null)[]>([null]);
   const { message } = useSelector((state: RootState) => state.message);
-  const [q_as, setQ_as] = useState<Record<string, Q_as>>({});
+  const [jobForPrices, setJobForPrices] = useState<
+    Record<string, Job_for_prices>
+  >({});
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -40,14 +42,14 @@ const ListingCreate: React.FC = () => {
     return fileName.replaceAll(/[çÇğĞıİöÖşŞüÜ]/g, (char) => map[char]);
   };
 
-  const deleteEmptyQ_as = () => {
-    const finalQ_as = Object.fromEntries(
-      Object.entries(q_as).filter(
-        ([, value]) => value.q.trim() !== "" && value.a.trim() !== "",
+  const deleteEmptyJobForPrices = () => {
+    const finalJobForPrices = Object.fromEntries(
+      Object.entries(jobForPrices).filter(
+        ([, value]) => value.job.trim() !== "",
       ),
     );
 
-    return finalQ_as;
+    return finalJobForPrices;
   };
 
   const submit = async () => {
@@ -58,18 +60,24 @@ const ListingCreate: React.FC = () => {
 
         return new File([img], fixedName, { type: img.type });
       });
-      const finalQ_as = deleteEmptyQ_as();
+    const finalJobForPrices = deleteEmptyJobForPrices();
 
     const formData = new FormData();
     fixedImages.map((image) => formData.append(`images`, image));
-    formData.append("title", values.title);
-    formData.append("description", values.description);
-    formData.append("price", values.price);
-    formData.append("category", values.category);
-    formData.append("jsonStringfyQ_a", JSON.stringify(finalQ_as));
+    formData.append("job_title", values.job_title);
+    formData.append("information", values.information);
+    formData.append("address", values.address);
+    formData.append("job_category", values.job_category);
+    formData.append(
+      "jsonStringfyJobForPrices",
+      JSON.stringify(finalJobForPrices),
+    );
 
     try {
-      const { data } = await api.post("/listings/addlisting", formData);
+      const { data } = await api.post(
+        "/tradesman/becomingTradingsman",
+        formData,
+      );
 
       if (data.error) {
         return dispatch(
@@ -101,24 +109,17 @@ const ListingCreate: React.FC = () => {
 
   const formik = useFormik({
     initialValues: {
-      title: "",
-      description: "",
-      price: "",
-      category: "",
+      job_title: "",
+      information: "",
+      job_phone: "",
+      address: "",
+      job_category: "",
     },
-    validationSchema: listingYup,
+    validationSchema: tradesmanYup,
     onSubmit: submit,
   });
-  const { values, errors, touched, handleChange, handleSubmit, setFieldValue } =
+  const { values, errors, touched, handleChange, handleSubmit } =
     formik;
-
-  useEffect(() => {
-    const price = Number(values.price);
-
-    if ((isNaN(price) || price < 0) && values.price !== "0") {
-      setFieldValue("price", "0");
-    }
-  }, [values.price, setFieldValue]);
 
   const handleImageAdd = (file: File, index: number) => {
     const newImages = [...images];
@@ -168,133 +169,149 @@ const ListingCreate: React.FC = () => {
           ))}
         </div>
 
-        {/* başlık */}
+        {/* yaptığı iş */}
         <div className="space-y-2">
-          <label className="text-sm text-gray-600 font-medium">İlan İsmi</label>
+          <label className="text-sm text-gray-600 font-medium">İşini Yaz</label>
           <input
             type="text"
-            name="title"
+            name="job_title"
             onChange={handleChange}
-            value={values.title}
+            value={values.job_title}
             className="w-full h-12 rounded-xl border border-gray-300 px-4 text-sm outline-none"
-            placeholder="En az 10 en fazla 40 karakter"
+            placeholder="En az 10 en fazla 100 karakter"
           />
-          {errors.title && touched.title && (
-            <div className="ml-1 text-red-600 text-sm">{errors.title}</div>
+          {errors.job_title && touched.job_title && (
+            <div className="ml-1 text-red-600 text-sm">{errors.job_title}</div>
           )}
         </div>
 
-        {/* açıklama */}
+        {/* esnaf bilgisi */}
         <div className="space-y-2">
           <label className="text-sm text-gray-600 font-medium">
-            İlan Detayları
+            Kendini anlat
           </label>
           <textarea
-            name="description"
+            name="information"
             onChange={handleChange}
-            value={values.description}
+            value={values.information}
             rows={6}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm resize-none outline-none"
-            placeholder="En az 100 en fazla 500 karakter"
+            placeholder="En az 100 en fazla 1000 karakter"
           />
-          {errors.description && touched.description && (
+          {errors.information && touched.information && (
             <div className="ml-1 text-red-600 text-sm">
-              {errors.description}
+              {errors.information}
             </div>
           )}
         </div>
 
         <div className="flex flex-row justify-between gap-5">
-          {/* fiyat */}
+          {/* iletişim no */}
           <div className="space-y-2 flex flex-col">
             <label className="text-sm text-gray-600 font-medium">
-              İlan Fiyatı
+              İletişim No
             </label>
             <input
-              name="price"
-              type="number"
+              name="job_phone"
+              type="text"
               onChange={handleChange}
-              value={values.price}
+              value={values.job_phone}
               className="w-30 h-12 rounded-xl border border-gray-300 px-4 py-3 text-sm resize-none outline-none"
-              placeholder="Fiyat"
+              placeholder="10 hane"
             />
-            {errors.price && touched.price && (
-              <div className="ml-1 text-red-600 text-sm">{errors.price}</div>
+            {errors.job_phone && touched.job_phone && (
+              <div className="ml-1 text-red-600 text-sm">
+                {errors.job_phone}
+              </div>
             )}
           </div>
 
-          {/* kategori */}
+          {/* iş */}
           <div className="space-y-2 flex flex-col">
-            <label className="text-sm text-gray-600 font-medium">
-              Kategori
-            </label>
+            <label className="text-sm text-gray-600 font-medium">İşiniz</label>
             <select
-              name="category"
-              value={values.category}
+              name="job_category"
+              value={values.job_category}
               onChange={handleChange}
               className="w-full h-12 rounded-xl border px-4"
             >
-              <option>Kategori seç</option>
-              <option value="second-hand">İkinci El</option>
-              <option value="vehicles">Vasıta</option>
-              <option value="spare_parts">Yedek Parça</option>
-              <option value="real_estate">Emlak</option>
-              <option value="industry">Sanayi</option>
-              <option value="job_listings">İş İlanları</option>
-              <option value="animals">Hayvanlar</option>
-              <option value="hobbies_entertainment">Hobi & Eğlence</option>
-              <option value="fashion">Moda</option>
-              <option value="home_living">Ev & Yaşam</option>
+              <option>İş Kategorisi seç</option>
+              <option value="Technology_digital_professions">
+                Teknoloji & Dijital Meslek
+              </option>
+              <option value="Technical_skilled_trades">
+                Teknik & Ustalık Gerektiren Meslek
+              </option>
+              <option value="Construction_building_sector">
+                İnşaat & Yapı Sektörü
+              </option>
+              <option value="Creative_design_fields">
+                Yaratıcı & Tasarım Alanları
+              </option>
+              <option value="Consulting_office_jobs">
+                Danışmanlık & Ofis İşleri
+              </option>
+              <option value="Service_operational_jobs">
+                Hizmet & Operasyonel İşler
+              </option>
+              <option value="Education_personal_services">
+                Eğitim & Bireysel Hizmetler
+              </option>
             </select>
-            {errors.category && touched.category && (
-              <div className="ml-1 text-red-600 text-sm">{errors.category}</div>
+            {errors.job_category && touched.job_category && (
+              <div className="ml-1 text-red-600 text-sm">
+                {errors.job_category}
+              </div>
             )}
           </div>
         </div>
 
-        {/* soru cevap */}
+        {/* İş & ve Fiyatı */}
         <div className="flex flex-col gap-4 w-full mx-auto">
           <span
             onClick={() =>
-              Object.entries(q_as).length < 3
-                ? setQ_as((prev) => ({
+              Object.entries(jobForPrices).length < 5
+                ? setJobForPrices((prev) => ({
                     ...prev,
-                    [`q-a${Object.entries(prev).length + 1}`]: { q: "", a: "" },
+                    [`job_for_prices${Object.entries(prev).length + 1}`]: {
+                      job: "",
+                      price: 0,
+                    },
                   }))
                 : dispatch(
                     setMessage({
-                      message: "En fazla 3 soru-cevap ekleyebilirsiniz",
+                      message: "En fazla 3 İş & Fiyatı ekleyebilirsiniz",
                       messageColor: "#f23f3f",
                     }),
                   )
             }
             className="bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-700 transition w-fit self-left"
           >
-            soru-cevap ekle
+            İş & Fiyatı ekle
           </span>
 
           <div className="flex flex-col gap-4">
-            {Object.entries(q_as).map(([key, value]) => (
+            {Object.entries(jobForPrices).map(([key, value]) => (
               <div
                 key={key}
                 className="border rounded-xl p-4 shadow-sm bg-white flex flex-col gap-3"
               >
                 <div className="flex flex-col gap-1">
                   <span className="text-sm text-gray-500 font-medium">
-                    {key[3]}. soru
+                    {key[14]}. Yapacağım iş
                   </span>
 
                   <input
                     type="text"
                     minLength={10}
                     maxLength={250}
-                    value={value.q}
+                    value={value.job}
                     onChange={(e) =>
-                      setQ_as((prev) => ({
+                      setJobForPrices((prev) => ({
                         ...prev,
                         [key]: {
                           ...prev[key],
-                          q: e.target.value,
+                          job: e.target.value,
                         },
                       }))
                     }
@@ -305,25 +322,26 @@ const ListingCreate: React.FC = () => {
 
                 <div className="flex flex-col gap-1">
                   <span className="text-sm text-gray-500 font-medium">
-                    cevap
+                    Beklediğin Fiyat
                   </span>
 
                   <input
-                    type="text"
+                    type="number"
                     minLength={10}
                     maxLength={250}
-                    value={value.a}
-                    onChange={(e) =>
-                      setQ_as((prev) => ({
+                    value={value.price}
+                    onChange={(e) => {
+                      const value = Number(e.target.value);
+                      setJobForPrices((prev) => ({
                         ...prev,
                         [key]: {
                           ...prev[key],
-                          a: e.target.value,
+                          price: value,
                         },
-                      }))
-                    }
+                      }));
+                    }}
                     className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    placeholder="Cevap yaz..."
+                    placeholder="Fiyat"
                   />
                 </div>
               </div>
@@ -337,7 +355,7 @@ const ListingCreate: React.FC = () => {
           className="w-full h-12 rounded-xl bg-blue-500 text-white text-sm font-semibold
           hover:bg-blue-600 transition-colors"
         >
-          Ekle
+          Bize Katıl
         </button>
       </form>
       {message && <MessageBox />}
@@ -351,4 +369,4 @@ const ListingCreate: React.FC = () => {
   );
 };
 
-export default ListingCreate;
+export default BecomeTradesman;

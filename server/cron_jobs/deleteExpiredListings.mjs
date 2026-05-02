@@ -21,7 +21,7 @@ const deleteExpiredListings = async() =>{
         };
     }
 };
-const cronExpression = "*/5 * * * * *"
+const cronExpression = "*/5 * * * *"
 
 const task = cron.schedule(cronExpression, () =>{
     deleteExpiredListings();

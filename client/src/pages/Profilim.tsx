@@ -57,25 +57,13 @@ function Profilim() {
   const [loadingPassword, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [listings, setListings] = useState<Listing[]>();
-  const [userName, setUserName] = useState<string>("");
-  const [userPlaceHolderName, setUserPlaceHolderName] = useState(
-    user?.user_name,
-  );
   const [name, setName] = useState<string>("");
   const [surname, setSurname] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
 
   useEffect(() => {
     dispatch(getUser());
-    if (user?.user_name) {
-      setUserPlaceHolderName(user.user_name);
-    }
   }, [dispatch]);
-  useEffect(() => {
-    if (user?.user_name) {
-      setUserPlaceHolderName(user.user_name);
-    }
-  }, [user]);
 
   useEffect(() => {
     if (!openPhoneModal) return;
@@ -216,33 +204,6 @@ function Profilim() {
     return Object.values(image_paths).filter(Boolean);
   };
 
-  //*kullanıcı adı değişme
-  const changeUserName = async () => {
-    try {
-      const { data } = await api.post("/users/me/changeUserName", {
-        newUserName: userName,
-      });
-
-      dispatch(
-        setMessage({
-          message: data.message,
-          messageColor: "#2bd92b",
-        }),
-      );
-      setUserName("");
-      setUserPlaceHolderName(userName);
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.error || "Bir hata oluştu";
-
-      dispatch(
-        setMessage({
-          message: errorMessage,
-          messageColor: "#f23f3f",
-        }),
-      );
-    }
-  };
-
   //*İsim Ekleme
   const handleSetName = async () => {
     try {
@@ -331,12 +292,13 @@ function Profilim() {
         }),
       );
     }
-    const { data } = await api.post("/phone/set_phone", { phone });
-
-    if (data.error) {
+    try {
+    await api.post("/phone/set_phone", { phone });
+    } catch(error: any){
+      const errorMessage = typeof(error?.response?.data?.error) === "string" && error?.response.data.error || "Bir hata oluştu";
       return dispatch(
         setMessage({
-          message: data.error,
+          message: errorMessage,
           messageColor: "#f23f3f",
         }),
       );
@@ -348,7 +310,6 @@ function Profilim() {
   const handleSendCode = async () => {
     try {
       const { data } = await api.get("/phone/send_code");
-      console.log(data);
 
       if (data.error) {
         return dispatch(
@@ -511,24 +472,7 @@ function Profilim() {
           <div className="flex-1 bg-white rounded-3xl p-4 sm:p-6 md:p-8 shadow-lg border border-gray-100 w-full">
             {/* USERNAME */}
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-6">
-              Merhaba,
-              <span className="flex items-center gap-3 mt-2">
-                <input
-                  className="flex-1 bg-transparent outline-none text-gray-700 font-bold text-xl sm:text-2xl md:text-3xl placeholder-gray-400"
-                  placeholder={userPlaceHolderName}
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                />
-
-                {userName && userName.length >= 3 && (
-                  <button
-                    onClick={changeUserName}
-                    className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:text-gray-900 hover:bg-gray-200"
-                  >
-                    <CgCheck size={16} />
-                  </button>
-                )}
-              </span>
+              Merhaba, {user.user_name}
             </h1>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -685,7 +629,7 @@ function Profilim() {
 
           <button
             onClick={() => setShowPasswordModal(true)}
-            className="flex items-center gap-3 bg-blue-500 text-white py-4 rounded-2xl shadow-lg hover:scale-[1.03] hover:bg-blue-600 transition"
+            className="flex items-center gap-3 bg-yellow-500 text-white py-4 rounded-2xl shadow-lg hover:scale-[1.03] hover:bg-yellow-600 transition"
           >
             <FaUserLock className="w-6 h-6 ml-5" />
             <span className="font-semibold">Şifreyi Değiştir</span>
@@ -710,6 +654,14 @@ function Profilim() {
             <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-amber-300 text-xs font-bold shadow">
               {user.listing_quota}
             </span>
+          </button>
+
+          <button
+            onClick={() => navigate("/esnafol")}
+            className="flex items-center gap-3 bg-blue-500 text-white py-4 rounded-2xl shadow-lg hover:scale-[1.03] hover:bg-blue-600 transition"
+          >
+            <FaShoppingCart className="w-6 h-6 ml-5" />
+            <span className="font-semibold">Esnaf Ol</span>
           </button>
 
           {user.role == "admin" && (

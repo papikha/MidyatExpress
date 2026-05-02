@@ -5,6 +5,8 @@ import { FaQuestion, FaRegEye } from "react-icons/fa";
 import api from "../api/axios";
 import { TiArrowBack } from "react-icons/ti";
 import Loading from "../Components/Loading";
+import type { RootState } from "../redux/store";
+import { useSelector } from "react-redux";
 
 interface Listing {
   id: number;
@@ -30,6 +32,7 @@ interface Seller {
 }
 
 export default function ListingDetail() {
+  const { user } = useSelector((state: RootState) => state.user);
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -229,7 +232,7 @@ export default function ListingDetail() {
           {/* satıcıya mesaj */}
           <div className="space-y-2">
             <button
-              onClick={() => navigate("/sohbetlerim")}
+              onClick={user ? () => navigate("/sohbetlerim") : () => navigate("/kayıt")}
               className="w-full bg-amber-400 hover:bg-amber-500 transition text-white font-semibold py-2 rounded-xl text-sm"
             >
               Satıcıya Mesaj At

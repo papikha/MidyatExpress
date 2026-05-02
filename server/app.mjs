@@ -46,7 +46,7 @@ app.use("/api/panel", PanelRouter);
 app.use("/api/profile", ProfileRouter, rateLimiter);
 app.use("/api/chat", ChatRouter);
 app.use("/api/cart", CartRouter);
-app.use("/api/listings", ListingRouter);
+app.use("/api/listings",  ListingRouter);
 
 const port = process.env.PORT || 8000;
 

@@ -13,7 +13,7 @@ function NewProductDetails() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { user } = useSelector((state: RootState) => state.user);
-  const [quantity, setQuantity] = useState<number>(0);
+  const [quantity, setQuantity] = useState<number | null>(null);
   const { products } = useSelector((state: RootState) => state.products);
   const { id } = useParams<{ id: string }>();
 
@@ -44,22 +44,22 @@ function NewProductDetails() {
   const addCart = async () => {
     if (!user) return navigate("/kayıt");
     try {
-      const response = await api.post("/cart/iord", { product_id: id});
+      const response = await api.post("/cart/iord", { product_id: id });
       setQuantity(response.data.quantity);
     } catch (error) {
       console.error(error);
     }
   };
 
-  const increaseOrDecrease = (
-    increase: boolean
-  ) => {
+  const increaseOrDecrease = (increase: boolean) => {
     try {
       api.post("/cart/iord", { product_id: id, increase });
-      if (quantity < 1) {
-        setQuantity(0)
-      } else if (quantity >= 1) {
-        setQuantity(increase ? quantity + 1 : quantity - 1);
+      if ((quantity as number) < 1) {
+        setQuantity(0);
+      } else if ((quantity as number) >= 1) {
+        setQuantity(
+          increase ? (quantity as number) + 1 : (quantity as number) - 1,
+        );
       }
     } catch (error) {
       console.error(error);
@@ -127,8 +127,10 @@ function NewProductDetails() {
         <p className="text-gray-500 text-sm md:text-base">
           Stok durumu: {product.stock || "Stokta yok"}
         </p>
+        {/*quantity === null*/}
+        {quantity === null && <h1 className="ml-10 mt-5 font-bold">Bekleyin...</h1>}
         {/*sepete ekle*/}
-        {(quantity === 0 || quantity == null) && (
+        {quantity === 0 && (
           <button
             onClick={addCart}
             className="mt-4 lg:mb-10 bg-green-600 hover:bg-green-700 text-white font-bold py-2 md:py-3 px-6 rounded-lg shadow-lg transition transform hover:scale-105 cursor-pointer"
@@ -137,15 +139,21 @@ function NewProductDetails() {
           </button>
         )}
         {/*arttır azalt*/}
-        {quantity > 0 && (
+        {(quantity as number) > 0 && (
           <div className="md:-ml-10 self-center mt-2 flex items-center">
-            <button onClick={() => increaseOrDecrease(false)} className="h-9 w-9 rounded-full border border-gray-200 hover:bg-gray-100 cursor-pointer">
+            <button
+              onClick={() => increaseOrDecrease(false)}
+              className="h-9 w-9 rounded-full border border-gray-200 hover:bg-gray-100 cursor-pointer"
+            >
               -
             </button>
 
             <span className="mx-3">Eklenen {quantity}</span>
 
-            <button onClick={() => increaseOrDecrease(true)}  className="h-9 w-9 rounded-full border border-gray-200 hover:bg-gray-100 cursor-pointer">
+            <button
+              onClick={() => increaseOrDecrease(true)}
+              className="h-9 w-9 rounded-full border border-gray-200 hover:bg-gray-100 cursor-pointer"
+            >
               +
             </button>
           </div>

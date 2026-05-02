@@ -79,31 +79,6 @@ router.get("/me", async (req, res) => {
   }
 });
 
-router.post("/me/changeUserName", async (req, res) => {
-  const id = req.user.id;
-  if (!req.user.id) return res.sendStatus(401);
-  const newUserName = req.body.newUserName;
-  const { data, error } = await supabase
-    .from("users")
-    .update({ user_name: newUserName })
-    .eq("id", id);
-  if (error) {
-    if (error?.code == "23505") {
-      return res
-        .status(409)
-        .json({ error: "Bu kullanıcı adı zaten kullanılıyor" });
-    }
-    return res.status(500).json({
-      error:
-        "Kullanıcı adı değiştirilirken bir hata oluştu lütfen daha sonra tekrar deneyiniz.",
-    });
-  }
-
-  return res
-    .status(200)
-    .json({ message: "Kullanıcı adınız başarıyla değiştirildi" });
-});
-
 router.post("/me/set", async (req, res) => {
   const id = req.user.id;
   if (!req.user.id) return res.sendStatus(401);

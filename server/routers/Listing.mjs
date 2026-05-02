@@ -11,6 +11,16 @@ const addListingLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const searchListingLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 30,
+  message: {
+    error: "Çok fazla arama isteğinde bulundunuz daha sonra tekrar deneyin",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 const seeListingLimiter = rateLimit({
   windowMs: 30 * 1000,
   max: 1,
@@ -90,11 +100,11 @@ router.post(
       }
 
       const {
-        data: { listing_quota },
+        data: { listing_quota, real_name, real_surname, is_phone_confirmed },
         error: ListingQuotaError,
       } = await supabase
         .from("users")
-        .select("listing_quota")
+        .select("listing_quota, real_name, real_surname, is_phone_confirmed")
         .eq("id", id)
         .single();
       if (ListingQuotaError) {
@@ -104,6 +114,13 @@ router.post(
         return res
           .status(400)
           .json({ error: "İlan ekleme hakkınız bulunmuyor" });
+      }
+      if (!real_name || !real_surname || !is_phone_confirmed) {
+        return res
+          .status(400)
+          .json({
+            error: "İlan Eklemek için kişisel bilgilerinizi doldurunuz",
+          });
       }
 
       const { data: insertedListing, error: addlistingError } = await supabase
@@ -181,7 +198,31 @@ router.post(
   },
 );
 
-router.patch("/increaseseen/:id", seeListingLimiter,  async (req, res) => {
+router.post("/search", searchListingLimiter, async (req, res) => {
+  const id = req.user.id;
+  if (!id) return res.sendStatus(403);
+
+  const { words } = req.body;
+
+  if (words == "" || words.trim() === "" || words.trim().length < 3) {
+    return res.status(400).json({ error: "Lütfen en az 5 harfli bir kelime yazın" });
+  }
+
+  const { data: searchedListings, error: searchError } = await supabase
+    .from("listings")
+    .select("id, listing_name, listing_price, listing_queue, listing_description, image_paths, category")
+    .or(`listing_name.ilike.%${words}%,listing_description.ilike.%${words}%`)
+    .order("listing_queue", { ascending: false }) // büyükten küçüğe
+    .order("created_at", { ascending: true }); // küçükten büyüğe
+
+    if (searchError){
+      return res.status(500).json({error: searchError});
+    }
+
+    return res.status(200).json(searchedListings);
+});
+
+router.patch("/increaseseen/:id", seeListingLimiter, async (req, res) => {
   const id = req.user.id;
   if (!id) return res.sendStatus(403);
   const listing_id = req.params.id;
@@ -193,14 +234,13 @@ router.patch("/increaseseen/:id", seeListingLimiter,  async (req, res) => {
     .single();
 
   if (seenData.seller_id == id) return res.sendStatus(200);
-  
+
   const { data, error } = await supabase
     .from("listings")
     .update({ seen: seenData.seen + 1 })
     .eq("id", listing_id)
     .single();
-    return res.sendStatus(200);
-
+  return res.sendStatus(200);
 });
 
 export default router;

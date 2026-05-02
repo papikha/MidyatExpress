@@ -16,6 +16,7 @@ import api from "./api/axios";
 import type { RootState } from "./redux/store";
 import { useSelector } from "react-redux";
 import ListingDetails from "./pages/ListingDetails";
+import BecomeTradesman from "./Components/BecomeTradesman"
 import Listings from "./pages/Listings";
 
 function App() {
@@ -52,6 +53,7 @@ function App() {
         <Route path="/Sepetim" element={<Cart />} />
         <Route path="/ilan/:id" element={<ListingDetails />} />
         <Route path="/ilanEkle" element={<AddListing/>} />
+        <Route path="/esnafOl" element={<BecomeTradesman/>} />
         <Route path="/ilanlar" element={<Listings/>} />
       </Routes>
     </div>
